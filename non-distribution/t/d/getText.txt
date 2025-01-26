@@ -1,0 +1,7 @@
+This is a test website!
+
+Check out Some stuff [current_level/index.html].
+
+Check out Some more stuff [current_level/index.html].
+
+© 2023 CS1380. All rights reserved.
