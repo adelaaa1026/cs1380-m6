@@ -2,9 +2,9 @@
   "name": "cs1380:m0",
   "version": "1.0.0",
   "author": {
-    "name": "Adela Zhou",
-    "email": "bingbin_zhou@brown.edu",
-    "cslogin": "bzhou29"
+    "name": "<first last?>",
+    "email": "<email@brown.edu?>",
+    "cslogin": "<cslogin?>"
   },
   "description": "A set of components for cs1380's search engine.",
   "dependencies": {
@@ -24,20 +24,18 @@
     "jest": "^29.7.0"
   },
   "report": {
-    "hours": 7,
-    "loc": 240,
+    "hours": 999,
+    "loc": 999,
     "dev": {
       "cpu-no": 999,
       "mem-gb": 999,
       "ssd-gb": 999
     },
     "throughput": {
-      "dev": [0.5, 3, 5],
+      "dev": [],
       "aws": [],
       "gs": []
     },
-    "dloc": 2000
+    "dloc": -99
   }
 }
-
-
