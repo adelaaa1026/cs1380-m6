@@ -68,7 +68,6 @@ const printMerged = (err, data) => {
     return;
   }
 
-  // Split the data into an array of lines
   const localIndexLines = localIndex.split('\n');
   const globalIndexLines = data.split('\n');
 

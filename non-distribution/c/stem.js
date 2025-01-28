@@ -24,7 +24,4 @@ rl.on('line', function(line) {
 });
 
 
-// rl.close(); // Close the interface
-// rl.on('close', () => {
-//     console.log('Interface closed programmatically.');
-// });
+ 
