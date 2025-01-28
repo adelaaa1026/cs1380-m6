@@ -24,18 +24,18 @@
     "jest": "^29.7.0"
   },
   "report": {
-    "hours": 999,
-    "loc": 999,
+    "hours": 8,
+    "loc": 350,
     "dev": {
-      "cpu-no": 999,
-      "mem-gb": 999,
-      "ssd-gb": 999
+      "cpu-no": "Intel i5",
+      "mem-gb": 8,
+      "ssd-gb": 256
     },
     "throughput": {
-      "dev": [],
-      "aws": [],
+      "dev": [0.4, 3, 0.9],
+      "aws": [0.8, 1.5, 1],
       "gs": []
     },
-    "dloc": -99
+    "dloc": 2000
   }
 }
