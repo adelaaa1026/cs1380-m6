@@ -124,6 +124,72 @@ test('m1: error', () => {
   expect(deserialized.stack).toBeDefined();
 });
 
+test('debug native modules serialization', () => {
+    // Get fs.readFile specifically
+    const readFile = require('fs').readFile;
+    
+    console.log('Original readFile:', readFile.toString());
+    
+    const serialized = distribution.util.serialize(readFile);
+    console.log('Serialized:', serialized);
+    
+    const deserialized = distribution.util.deserialize(serialized);
+    console.log('Deserialized:', deserialized.toString());
+    
+    // Test the actual values
+    expect(typeof deserialized).toBe('function');
+    console.log('Are they equal?', readFile === deserialized);
+    console.log('Original type:', typeof readFile);
+    console.log('Deserialized type:', typeof deserialized);
+    
+    // Test if it's actually a native function
+    console.log('Is native function?', readFile.toString().includes('[native code]'));
+    
+    // Compare the actual functions
+    expect(deserialized).toBe(readFile);
+});
+
+test('debug console.log serialization', () => {
+    const originalLog = console.log;
+    
+    console.log('Original log function:', originalLog.toString());
+    console.log('Is native?', originalLog.toString().includes('[native code]'));
+    
+    const serialized = distribution.util.serialize(originalLog);
+    console.log('Serialized:', serialized);
+    
+    const deserialized = distribution.util.deserialize(serialized);
+    console.log('Deserialized:', deserialized.toString());
+    
+    // Compare functions
+    console.log('Are equal?', originalLog === deserialized);
+    console.log('Original name:', originalLog.name);
+    console.log('Deserialized name:', deserialized.name);
+    
+    // Test actual values
+    expect(deserialized).toBe(originalLog);
+});
+
+test('debug built-in constructors serialization', () => {
+    const constructors = [Object, Array, Object.prototype];
+    
+    console.log('Original Object:', Object.toString());
+    console.log('Is Object native?', Object.toString().includes('[native code]'));
+    console.log('Object name:', Object.name);
+    
+    const serialized = distribution.util.serialize(constructors);
+    console.log('Serialized:', serialized);
+    
+    const deserialized = distribution.util.deserialize(serialized);
+    console.log('Deserialized Object:', deserialized[0].toString());
+    console.log('Deserialized Object name:', deserialized[0].name);
+    console.log('Are equal?', Object === deserialized[0]);
+    
+    // Test actual values
+    expect(deserialized[0]).toBe(Object);
+    expect(deserialized[1]).toBe(Array);
+    expect(deserialized[2]).toBe(Object.prototype);
+});
 
 // M2 Test Cases
 
