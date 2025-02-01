@@ -36,6 +36,17 @@ function serialize(object) {
         });
     }
 
+    if (object instanceof Error) {
+        return JSON.stringify({
+            type: "error",
+            value: {
+                name: object.name,
+                message: object.message,
+                stack: object.stack
+            }
+        });
+    }
+
     //   if (typeof object === "function") {
 //     return JSON.stringify({
 //         type: "function",
@@ -96,6 +107,12 @@ function deserialize(string) {
         }
         case "date":
             return new Date(value);
+        case "error": {
+            const error = new Error(value.message);
+            error.name = value.name;
+            error.stack = value.stack;
+            return error;
+        }
       default:
           throw new Error("Unsupported type");
   }

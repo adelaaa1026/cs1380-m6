@@ -90,11 +90,11 @@ test('m1: array', () => {
 
 test('m1: object', () => {
   const object = {
-    number: 1380,
-    string: "1380",
+    num: 1380,
+    str: "1380",
     null: null,
-    array: [1380, 1380],
-    nested: {
+    arr: [1380, 1380],
+    obj: {
       a: 1380,
       b: "cs1380"
     }
@@ -111,6 +111,17 @@ test('m1: date', () => {
   
   expect(deserialized instanceof Date).toBe(true);
   expect(deserialized.getTime()).toBe(object.getTime());
+});
+
+test('m1: error', () => {
+  const object = new Error('CS1380 lalala');
+  const serialized = distribution.util.serialize(object);
+  const deserialized = distribution.util.deserialize(serialized);
+  
+  expect(deserialized instanceof Error).toBe(true);
+  expect(deserialized.message).toBe('CS1380 lalala');
+  expect(deserialized.name).toBe('Error');
+  expect(deserialized.stack).toBeDefined();
 });
 
 
