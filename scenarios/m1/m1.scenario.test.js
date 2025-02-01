@@ -1,4 +1,5 @@
 const distribution = require('../../config.js');
+
 const util = distribution.util;
 
 test('(3 pts) (scenario) 40 bytes object', () => {
@@ -6,8 +7,16 @@ test('(3 pts) (scenario) 40 bytes object', () => {
           Come up with a JavaScript object, which when serialized,
           will result in a string that is 40 bytes in size.
       */
-  let object = null;
+  // const number = 1380
+  // const s_number = util.serialize(number)
+  // console.log("serialized Number: ",s_number )
 
+  const func = (a, b) => {return a + b;};
+  const s_function = util.serialize(func);
+  console.log("serialized Function: ",s_function );
+
+
+  let object = "aaaaaaaaaaaa";
   const serialized = util.serialize(object);
   expect(serialized.length).toBe(40);
 });
@@ -16,7 +25,7 @@ test('(3 pts) (scenario) object fix', () => {
   /* Modify the following object so that when serialized,
            results in the expected string. */
 
-  let object = {a: 'jcerb', b: -87, c: (a) => 4};
+  let object = {a: 'jcarb', b: 1, c: (a, b) => a + b};
 
   // eslint-disable-next-line
     const serializedObject = '{"type":"object","value":{"a":"{\\"type\\":\\"string\\",\\"value\\":\\"jcarb\\"}","b":"{\\"type\\":\\"number\\",\\"value\\":\\"1\\"}","c":"{\\"type\\":\\"function\\",\\"value\\":\\"(a, b) => a + b\\"}"}}';
@@ -29,7 +38,7 @@ test('(3 pts) (scenario) string deserialized into target object', () => {
           {a: 1, b: "two", c: false}
       */
 
-  let string = null;
+  let string = '{"type":"object","value":{"a":"{\\"type\\":\\"number\\",\\"value\\":\\"1\\"}", "b":"{\\"type\\":\\"string\\",\\"value\\":\\"two\\"}","c":"{\\"type\\":\\"boolean\\",\\"value\\":\\"false\\"}"}}';
 
 
   const object = {a: 1, b: 'two', c: false};
@@ -40,7 +49,7 @@ test('(3 pts) (scenario) string deserialized into target object', () => {
 test('(3 pts) (scenario) object with all supported data types', () => {
 /* Come up with an object that uses all valid (serializable)
     built-in data types supported by the serialization library. */
-  let object = null;
+  let object = {array: [], date: new Date(), error: new Error(), Object: new Object(), boolean: true, function: function() {}, null: null, number: 0, object: {}, string: "", undefined: undefined};
 
   const setTypes = new Set();
   for (const k in object) {
@@ -74,7 +83,7 @@ test('(3 pts) (scenario) object with all supported data types', () => {
 test('(3 pts) (scenario) malformed serialized string', () => {
 /* Come up with a string that is not a valid serialized object. */
 
-  let malformedSerializedString = null;
+  let malformedSerializedString = "{123}";
 
 
   expect(() => {
