@@ -74,3 +74,23 @@ You can also send messages to other nodes:
 ```js
 distribution.all.comm.send(['sid'], {node: node, service: 'status', method: 'get'}, console.log); // 8cf1c
 ```
+
+
+# Results and Reflection
+# M1: Serialization / Deserialization
+## Summary
+> Summarize your implementation, including key challenges you encountered.
+
+My implementation comprises one software components (serialization), totaling 200 lines of code. Key challenges included:
+1. deserializing functions: I looked up StackOverflow for help and experimented with different approaches outlined there, and found that the best approach was to use the `new Function` constructor to create a new function from the serialized string.
+2. discovering root objects dynamically: after hardcoding the native modules to serialize them, I struggled a bit to come up with a way to 
+dynamically discover the root objects. but after looking into "process.binding('natives')" I found a way to do it.
+
+## Correctness & Performance Characterization
+> Describe how you characterized the correctness and performance of your
+implementation
+*Correctness*: I wrote 16 tests; these tests take 1.021s to
+execute. This includes objects with primitive types,functions, dates, errors, and complex structures like cycles and native modules. 
+*Performance*: The latency of various subsystems is described in the
+`"latency"` portion of package.json. The characteristics of my development
+machines are summarized in the `"dev"` portion of package.json.
