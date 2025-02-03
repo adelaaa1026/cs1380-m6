@@ -7,6 +7,8 @@
 */
 
 const distribution = require('../../config.js');
+const util = require('../../distribution/util/serialization.js');
+const fs = require('fs');
 
 test('(1 pts) student test', () => {
   //   test: 'm1: sample test'
@@ -179,3 +181,4 @@ test('(1 pts) student test', () => {
 
   expect(deserialized).toEqual(obj);
 });
+
