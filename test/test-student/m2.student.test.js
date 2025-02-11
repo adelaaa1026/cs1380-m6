@@ -10,7 +10,6 @@ const distribution = require('../../config.js');
 const { send } = require('../../distribution/local/comm');
 const http = require('http');
 
-// Add server setup and cleanup
 let server;
 
 beforeAll((done) => {
