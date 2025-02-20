@@ -54,6 +54,7 @@ function serialize(object) {
             };
         }
 
+        
         // Check for built-in constructors and their prototypes
         const builtInIndex = BUILT_INS.indexOf(obj);
         if (builtInIndex !== -1) {
@@ -158,13 +159,34 @@ function serialize(object) {
             };
         }
 
-        // Add function handling
+        // Improved function handling
         if (typeof obj === "function") {
+            // Skip serializing native functions
+            if (obj.toString().includes('[native code]')) {
+                return {
+                    type: "native-function",
+                    value: obj.name || "anonymous"
+                };
+            }
+
             const funcStr = obj.toString();
+            // Handle arrow functions, regular functions, and anonymous functions
+            let serializedFunc;
+            if (funcStr.startsWith('(')) {
+                // Arrow function or anonymous function expression
+                serializedFunc = `(${funcStr})`;
+            } else if (funcStr.startsWith('function')) {
+                // Regular function
+                serializedFunc = `(${funcStr})`;
+            } else {
+                // Other cases (e.g. method shorthand)
+                serializedFunc = `(function ${funcStr})`;
+            }
+
             return {
                 type: "function",
                 id: id,
-                value: funcStr
+                value: serializedFunc
             };
         }
 
@@ -210,19 +232,10 @@ function deserialize(string) {
                 return Number(value);
             case "boolean":
                 return value === "true";
-            case "function": {
-                // Skip trying to evaluate native code
-                if (value.includes('[native code]')) {
-                    return function() { 
-                        throw new Error('Cannot execute native code');
-                    };
-                }
-                result = new Function('return ' + value)();
-                if (id !== undefined) {
-                    objectsById.set(id, result);
-                }
-                return result;
-            }
+            case "native-function":
+                return function() {
+                    throw new Error(`Cannot execute native function: ${value}`);
+                };
             case "native": {
                 if (module === "console") {
                     return console[exportName];
@@ -259,6 +272,22 @@ function deserialize(string) {
                     }
                 }
                 break;
+            case "function": {
+                try {
+                    // Safely evaluate the function in a controlled context
+                    const context = {};
+                    const func = new Function('return ' + value).call(context);
+                    if (id !== undefined) {
+                        objectsById.set(id, func);
+                    }
+                    return func;
+                } catch (e) {
+                    console.warn('Failed to deserialize function:', e);
+                    return function() {
+                        throw new Error('Failed to deserialize function');
+                    };
+                }
+            }
             default:
                 throw new Error("Unsupported type");
         }

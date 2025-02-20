@@ -89,16 +89,16 @@ test('(2 pts) (scenario) collect errors and successful results', (done) => {
 
 test('(5 pts) (scenario) use rpc', (done) => {
   let n = 0;
-  let addOne = () => {
+  const addOne = () => {
     return ++n;
   };
 
   const node = {ip: '127.0.0.1', port: 9009};
 
-  // ...
+  let addOneRPC = '?';
 
   const rpcService = {
-    addOne: addOne,
+    addOne: addOneRPC,
   };
 
   distribution.node.start((server) => {

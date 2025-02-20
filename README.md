@@ -16,6 +16,7 @@ There are several categories of tests:
   *	Regular Tests (`*.test.js`)
   *	Scenario Tests (`*.scenario.js`)
   *	Extra Credit Tests (`*.extra.test.js`)
+  * Student Tests (`*.student.test.js`) - inside `test/test-student`
 
 ### Running Tests
 
