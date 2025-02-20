@@ -1,6 +1,12 @@
+/**
+ * Groups service template
+ * Creates group-specific instances
+ */
 const groups = function(config) {
   const context = {};
   context.gid = config.gid || 'all';
+
+  console.log('[all/groups] Creating groups service for:', context.gid);
 
   return {
     /**
@@ -14,6 +20,8 @@ const groups = function(config) {
       global.distribution.local.groups.get(context.gid, (err, group) => {
         if (err) {
           console.error('[all/groups] Error getting group:', err);
+          errors[sid] = err instanceof Error ? err : new Error(err.message || err);
+          // console.log('[all/groups] Error from node:', sid, errors[sid]);
           callback(err, null);
           return;
         }
@@ -38,13 +46,14 @@ const groups = function(config) {
             responseCount++;
             const sid = global.distribution.util.id.getSID(node);
             
-            if (err) {
-              errors[sid] = err;
+            console.log('[all/groups] Response from node:', sid, err, value);
+            if (err && err !== null) {
+              errors[sid] = err instanceof Error ? err : new Error(err);
             }
             if (value) {
               values[sid] = value;
             }
-
+            console.log('[all/groups] Errors:', errors);
             // Call callback once all nodes respond
             if (responseCount === nodes.length) {
               callback(
@@ -73,7 +82,7 @@ const groups = function(config) {
         }
 
         const nodes = Object.values(currentGroup);
-        let responseCount = 0;
+        let responses = 0;
         const errors = {};
         const values = {};
 
@@ -85,17 +94,17 @@ const groups = function(config) {
           };
 
           global.distribution.local.comm.send([config, group], remote, (err, value) => {
-            responseCount++;
+            responses++;
             const sid = global.distribution.util.id.getSID(node);
             
-            if (err) {
+            if (err && Object.keys(err).length > 0) {
               errors[sid] = err;
             }
             if (value) {
               values[sid] = value;
             }
 
-            if (responseCount === nodes.length) {
+            if (responses === nodes.length) {
               callback(
                 Object.keys(errors).length > 0 ? errors : {},
                 values
@@ -134,8 +143,10 @@ const groups = function(config) {
             responseCount++;
             const sid = global.distribution.util.id.getSID(node);
             
-            if (err) {
-              errors[sid] = err;
+            if (err && Object.keys(err).length > 0) {
+              // errors[sid] = err;
+              errors[sid] = err instanceof Error ? err : new Error(err.message || err);
+              console.log('[all/groups] Error from node:', sid, errors[sid]);
             }
             if (value) {
               values[sid] = value;
@@ -183,7 +194,7 @@ const groups = function(config) {
             responseCount++;
             const sid = global.distribution.util.id.getSID(currentNode);
             
-            if (err) {
+            if (err && Object.keys(err).length > 0) {
               errors[sid] = err;
             }
             if (value) {
@@ -232,7 +243,7 @@ const groups = function(config) {
             responseCount++;
             const sid = global.distribution.util.id.getSID(currentNode);
             
-            if (err) {
+            if (err && Object.keys(err).length > 0) {
               errors[sid] = err;
             }
             if (value) {

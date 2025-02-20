@@ -24,9 +24,7 @@ function comm(config) {
    * @param {Callback} callback
    */
   function send(message, remote, callback) {
-    // For 'random' method, we expect immediate errors, so timeout can be very short
-    const TIMEOUT = message[0] === 'random' ? 100 : 500;
-    
+    const TIMEOUT = 1000;
     console.log('[all/comm] Starting send with:', {
       message,
       remote,
@@ -90,57 +88,40 @@ function comm(config) {
         complete();
       }, TIMEOUT);
 
-      if (message[0] === 'random') {
-        const localOptions = {
-          ...remote,
-          timeout: 50  // Very short timeout for known error case
-        };
-        nodes.forEach(node => {
-          const sid = global.distribution.util.id.getSID(node);
-          console.log('[all/comm] Sending to node:', {
-            node: `${node.ip}:${node.port}`,
-            sid
-          });
-          distribution.local.comm.send(message, {...localOptions, node}, (error, value) => {
-            responseCount++;
-            console.log('[all/comm] Received response from node:', {
-              node: `${node.ip}:${node.port}`,
-              sid,
-              error,
-              value,
-              responseCount
-            });
-            errors[sid] = error;
-            values[sid] = value;
-            if (responseCount === nodes.length) {
-              complete();
-            }
-          });
+      nodes.forEach(node => {
+        const localRemote = { ...remote, node };
+        const sid = global.distribution.util.id.getSID(node);
+        
+        console.log('[all/comm] Sending to node:', {
+          node: `${node.ip}:${node.port}`,
+          sid
         });
-      } else {
-        nodes.forEach(node => {
-          const sid = global.distribution.util.id.getSID(node);
-          console.log('[all/comm] Sending to node:', {
+
+        distribution.local.comm.send(message, localRemote, (error, value) => {
+          responseCount++;
+          console.log('[all/comm] Received response from node:', {
             node: `${node.ip}:${node.port}`,
-            sid
+            sid,
+            error,
+            value,
+            responseCount
           });
-          distribution.local.comm.send(message, {...remote, node}, (error, value) => {
-            responseCount++;
-            console.log('[all/comm] Received response from node:', {
-              node: `${node.ip}:${node.port}`,
-              sid,
-              error,
-              value,
-              responseCount
-            });
-            errors[sid] = error;
-            values[sid] = value;
-            if (responseCount === nodes.length) {
-              complete();
-            }
-          });
+          
+          // if (error) {
+          //   console.log("has error: ", error);
+          //   errors[sid] = error;
+          //   // values[sid] = null;
+          // } else {
+          //   values[sid] = value;
+          // }
+          errors[sid] = error;
+          values[sid] = value;
+
+          if (responseCount === nodes.length) {
+            complete();
+          }
         });
-      }
+      });
     });
   }
 

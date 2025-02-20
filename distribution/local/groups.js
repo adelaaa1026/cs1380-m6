@@ -16,29 +16,46 @@ groups.get = function(name, callback) {
 
 groups.put = function(config, group, callback) {
     const gid = typeof config === 'string' ? config : config.gid;
+    
     console.log('[local/groups] Putting group on node:', {
         nodePort: global.nodeConfig.port,
         gid,
-        groupSize: group ? Object.keys(group).length : 0,
-        groupMembers: group ? Object.keys(group).map(sid => ({
-            sid,
-            node: group[sid]
-        })) : []
+        group: Object.keys(group)
     });
-    
-    if (!gid) {
-        console.error('[local/groups] Missing group ID');
-        return callback(new Error('Group ID is required'), null);
-    }
-    
-    groups[gid] = group;
-    console.log(`[local/groups] Group ${gid} stored successfully`);
 
-    // Dynamically instantiate services for the new group
-    console.log(`[local/groups] Creating services for group ${gid}`);
-    distribution[gid] = {};
-    distribution[gid].status = require('../all/status')({ gid });
-    distribution[gid].comm = require('../all/comm')({ gid });
+    if (!gid) {
+        callback(new Error('Group ID is required'), null);
+        return;
+    }
+
+    // 1. Store group locally
+    groups[gid] = group;
+    
+    // 2. Create new field in distribution object
+    if (!global.distribution[gid]) {
+        global.distribution[gid] = {};
+    }
+
+    // 3. Instantiate services from templates
+    // Get all service templates available in distribution.all
+    const availableServices = Object.keys(global.distribution.all);
+    console.log('[local/groups] Available services:', availableServices);
+
+    availableServices.forEach(serviceName => {
+        try {
+            // Get service template
+            const serviceTemplate = require(`../all/${serviceName}`);
+            
+            // Create new instance with group context
+            global.distribution[gid][serviceName] = serviceTemplate({
+                gid: gid
+            });
+
+            console.log(`[local/groups] Created ${serviceName} service for group ${gid}`);
+        } catch (error) {
+            console.error(`[local/groups] Error creating ${serviceName} service:`, error);
+        }
+    });
 
     callback(null, group);
 };
