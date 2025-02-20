@@ -110,6 +110,15 @@ status.get = function(configuration, callback) {
       callback(null, process.memoryUsage().heapUsed);
       return;
     }
+
+    // For unknown requests, return error in a format that will serialize properly
+    console.log('[local/status] Unknown status request:', configuration);
+    const error = new Error('Unknown status request: ' + configuration);
+    callback({
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    }, null);
   }
 };
 
@@ -140,7 +149,24 @@ status.spawn = require('@brown-ds/distribution/distribution/local/status').spawn
 // };
 
 status.stop = require('@brown-ds/distribution/distribution/local/status').stop; 
-// status.spawn = function(configuration, callback) {
+// status.stop = (callback) => {
+//   callback = callback || function() {};
+  
+//   // Log that we're stopping
+//   console.log('[local/status] Stopping node:', global.nodeConfig);
+  
+//   try {
+//     // Close any open connections/resources
+    
+//     // Call callback with success
+//     callback(null, true);
+    
+//     // Optional: Actually stop the node process
+//     // process.exit(0);
+//   } catch (error) {
+//     console.error('[local/status] Error stopping node:', error);
+//     callback(error);
+//   }
 // };
 
 // status.stop = function(callback) {

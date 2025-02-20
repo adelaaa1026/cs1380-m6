@@ -93,19 +93,64 @@ const status = function(config) {
     stop: (callback) => {
       console.log('[all/status] Stopping all nodes in group:', context.gid);
       
-      const message = [];
-      const remote = {
-        service: 'status',
-        method: 'stop'
-      };
-
-      global.distribution.all.comm(config).send(message, remote, (errors, values) => {
-        if (Object.keys(errors).length > 0) {
-          console.error('[all/status] Errors stopping nodes:', errors);
-          callback(errors, null);
+      groups.get(context.gid, (err, group) => {
+        if (err) {
+          console.error('[all/status] Error getting group:', err);
+          callback(err, null);
           return;
         }
-        callback(null, values);
+
+        const nodes = Object.values(group);
+        console.log('[all/status] Found nodes in group:', {
+          count: nodes.length,
+          nodes: nodes.map(n => `${n.ip}:${n.port}`)
+        });
+
+        // Create remote target for status.stop
+        const remote = {
+          service: 'status',
+          method: 'stop'
+        };
+
+        // Send stop request to all nodes in group
+        let responses = 0;
+        const errors = {};
+        const values = {};
+
+        nodes.forEach(node => {
+          const localRemote = { ...remote, node };
+          console.log('[all/status] Sending stop request to node:', `${node.ip}:${node.port}`);
+          
+          distribution.local.comm.send([], localRemote, (err, value) => {
+            console.log('[all/status] Received stop response from node:', {
+              node: `${node.ip}:${node.port}`,
+              err,
+              value
+            });
+            responses++;
+            
+            const sid = global.distribution.util.id.getSID(node);
+            if (err) {
+              errors[sid] = err;
+            }
+            if (value !== undefined) {
+              values[sid] = value;
+            }
+
+            // Only call callback when all responses are received
+            if (responses === nodes.length) {
+              console.log('[all/status] All stop responses received:', {
+                totalResponses: responses,
+                errors: Object.keys(errors).length
+              });
+              
+              const hasRealErrors = Object.values(errors).some(err => 
+                Object.keys(err).length > 0
+              );
+              callback(hasRealErrors ? errors : {}, values);
+            }
+          });
+        });
       });
     },
 
