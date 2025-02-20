@@ -118,42 +118,42 @@ const start = function(callback) {
                     return;
                 }
 
+                // Set group context before handling request
+                global.nodeConfig.gid = gid;
+
                 global.distribution.local.routes.get(service, (e, v) => {
                     if (e) {
                         res.end(JSON.stringify({ error: 'Service not found', value: null }));
                         return;
                     }
                     
-                    if (!v[method]) {
+                    // Use all/service for group requests, local/service for local requests
+                    const serviceHandler = gid === 'local' ? 
+                        v : 
+                        require('../all/' + service)({ gid });
+
+                    if (!serviceHandler[method]) {
                         res.end(JSON.stringify({ error: 'Method not found', value: null }));
                         return;
                     }
 
-                    v[method](...args, (errors, values) => {
-                        // Special handling for distributed service responses
-                        if (errors && typeof errors === 'object' && Object.keys(errors).length > 0) {
-                            // For distributed services, send both errors and values
+                    serviceHandler[method](...args, (errors, values) => {
+                        try {
+                            if (errors && typeof errors === 'object' && Object.keys(errors).length > 0) {
+                                res.end(JSON.stringify({
+                                    error: errors,
+                                    value: values
+                                }));
+                            } else {
+                                res.end(JSON.stringify({
+                                    error: null,
+                                    value: values
+                                }));
+                            }
+                        } catch (e) {
                             res.end(JSON.stringify({
-                                error: errors,
-                                value: values || {}
-                            }));
-                        } else if (errors instanceof Error) {
-                            // For local services with Error objects
-                            res.end(JSON.stringify({
-                                error: errors.message,
+                                error: 'Internal server error',
                                 value: null
-                            }));
-                        } else if (errors) {
-                            // For other error types
-                            res.end(JSON.stringify({
-                                error: errors.toString(),
-                                value: null
-                            }));
-                        } else {
-                            // Success case
-                            res.end(JSON.stringify({
-                                error: null,
-                                value: values
                             }));
                         }
                     });

@@ -16,9 +16,14 @@ groups.get = function(name, callback) {
 
 groups.put = function(config, group, callback) {
     const gid = typeof config === 'string' ? config : config.gid;
-    console.log(`[local/groups] Putting group: ${gid}`, {
+    console.log('[local/groups] Putting group on node:', {
+        nodePort: global.nodeConfig.port,
+        gid,
         groupSize: group ? Object.keys(group).length : 0,
-        groupKeys: group ? Object.keys(group) : []
+        groupMembers: group ? Object.keys(group).map(sid => ({
+            sid,
+            node: group[sid]
+        })) : []
     });
     
     if (!gid) {

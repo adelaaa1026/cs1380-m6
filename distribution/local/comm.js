@@ -16,14 +16,11 @@ const http = require('node:http');
  * @return {void}
  */
 function send(message, remote, callback) {
-    console.log('[local/comm] Sending request:', { 
-        message, 
+    console.log('[local/comm] Starting send with:', {
+        message,
         remote: {
             ...remote,
-            node: {
-                ip: remote.node?.ip,
-                port: remote.node?.port
-            }
+            node: remote.node ? `${remote.node.ip}:${remote.node.port}` : undefined
         }
     });
 
@@ -46,7 +43,7 @@ function send(message, remote, callback) {
         timeout: 1000
     };
 
-    console.log('[local/comm] Making request with options:', options);
+    console.log('[local/comm] Request options:', options);
 
     const req = http.request(options, (res) => {
         let data = '';
@@ -54,26 +51,38 @@ function send(message, remote, callback) {
         res.on('data', (chunk) => {
             data += chunk;
         });
-
+         
         res.on('end', () => {
+            console.log('[local/comm] Raw response:', {
+                length: data.length,
+                data
+            });
+
             try {
                 const result = JSON.parse(data);
+                console.log('[local/comm] Parsed result:', result);
                 callback(
-                    result.error ? new Error(result.error) : null,
+                    result.error ? new Error(result.error) : {},
                     result.value
                 );
             } catch (error) {
+                console.error('[local/comm] Error parsing response:', {
+                    error,
+                    data
+                });
                 callback(new Error('Failed to parse response'), null);
             }
         });
     });
 
     req.on('error', (error) => {
+        console.error('[local/comm] Request error:', error);
         req.destroy();
-        callback(error, null);
+        callback(error instanceof Error ? error : new Error(error), null);
     });
 
     req.on('timeout', () => {
+        console.error('[local/comm] Request timeout');
         req.destroy();
         callback(new Error('Request timed out'), null);
     });
@@ -82,8 +91,9 @@ function send(message, remote, callback) {
         req.write(JSON.stringify(message));
         req.end();
     } catch (error) {
+        console.error('[local/comm] Error sending request:', error);
         req.destroy();
-        callback(new Error('Failed to send request'), null);
+        callback(error instanceof Error ? error : new Error(error), null);
     }
 }
 
