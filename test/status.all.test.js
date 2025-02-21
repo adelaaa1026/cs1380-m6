@@ -20,6 +20,7 @@ test('(2 pts) all.status.get(random)', (done) => {
   distribution.mygroup.status.get('random', (e, v) => {
     try {
       Object.keys(mygroupGroup).forEach((sid) => {
+        console.log('[status.all.test] Error:', e[sid]);
         expect(e[sid]).toBeDefined();
         expect(e[sid]).toBeInstanceOf(Error);
       });

@@ -6,7 +6,8 @@
 const groups = require('../local/groups');
 
 const status = function(config) {
-  const context = { gid: config.gid || 'all' };
+  const context = {};
+  context.gid = config.gid || 'all';
 
   console.log('[all/status] Creating status service for group:', context.gid);
 
@@ -17,73 +18,57 @@ const status = function(config) {
      * @param {function} callback - Callback function
      */
     get: (configuration, callback) => {
-      if (configuration === 'nid') {
-        console.log('[all/status] Getting NIDs for group:', context.gid);
-        groups.get(context.gid, (err, group) => {
-          if (err) {
-            console.error('[all/status] Error getting group:', err);
-            callback(err, null);
-            return;
-          }
+      // Get nodes in current group
+      global.distribution.local.groups.get(context.gid, (err, group) => {
+        if ((err && Object.keys(err).length > 0) || (err instanceof Error)) {
+          callback(err, null);
+          return;
+        }
 
-          const nodes = Object.values(group);
-          console.log('[all/status] Found nodes in group:', {
-            count: nodes.length,
-            nodes: nodes.map(n => `${n.ip}:${n.port}`)
-          });
+        const nodes = Object.values(group);
+        let responseCount = 0;
+        const errors = {};
+        const values = {};
+        const nids = {};  // Object mapping nodes to nids
 
-          // Create remote target for status.get
+        nodes.forEach(node => {
           const remote = {
+            node: node,
             service: 'status',
             method: 'get'
           };
 
-          // Send request to all nodes in group
-          let responses = 0;
-          const nids = [];
-          const errors = {};
-
-          nodes.forEach(node => {
-            const localRemote = { ...remote, node };
-            console.log('[all/status] Sending NID request to node:', `${node.ip}:${node.port}`);
-            distribution.local.comm.send(['nid'], localRemote, (err, nid) => {
-              console.log('[all/status] Received response from node:', {
-                node: `${node.ip}:${node.port}`,
-                err,
-                nid
-              });
-              responses++;
-              
-              if (err) {
-                errors[global.distribution.util.id.getSID(node)] = err;
-              }  
-              if (nid) {
-                nids.push(nid);
+          global.distribution.local.comm.send([configuration], remote, (err, value) => {
+            responseCount++;
+            const sid = global.distribution.util.id.getSID(node);
+            console.log('[all/status] Response from node:', sid, err, value);
+            //if (err && Object.keys(err).length > 0) {
+              if ((err && Object.keys(err).length > 0) || (err instanceof Error)) {
+              console.log('[all/status] Error from node:', sid, err);
+              errors[sid] = err;
+            } else {
+              values[sid] = value;
+              if (configuration === 'nid') {
+                nids[sid] = value;  // Store nid for this node
               }
+            }
 
-              console.log('[all/status] Responses, nodes:', responses, nodes.length);
-              console.log('[all/status] nids:', nids);
-              
-              // Only call callback when all responses are received
-              if (responses === nodes.length) {
-                console.log('[all/status] All responses received:', {
-                  totalResponses: responses,
-                  nids: nids.length,
-                  errors: Object.keys(errors).length
-                });
-                const hasRealErrors = Object.values(errors).some(err => 
-                  Object.keys(err).length > 0
+            if (responseCount === nodes.length) {
+              if (configuration === 'nid') {
+                callback(
+                  Object.keys(errors).length > 0 ? errors : {},
+                  nids  // Return node->nid mapping
                 );
-                callback(hasRealErrors ? errors : {}, nids);
+              } else {
+                callback(
+                  Object.keys(errors).length > 0 ? errors : {},
+                  values
+                );
               }
-            });
+            }
           });
         });
-      } else {
-        // Handle other status requests normally
-        const remote = {service: 'status', method: 'get'};
-        distribution.mygroup.comm.send([configuration], remote, callback);
-      }
+      });
     },
 
     /**
@@ -94,7 +79,7 @@ const status = function(config) {
       console.log('[all/status] Stopping all nodes in group:', context.gid);
       
       groups.get(context.gid, (err, group) => {
-        if (err) {
+        if ((err && Object.keys(err).length > 0) || (err instanceof Error)) {
           console.error('[all/status] Error getting group:', err);
           callback(err, null);
           return;
@@ -130,7 +115,7 @@ const status = function(config) {
             responses++;
             
             const sid = global.distribution.util.id.getSID(node);
-            if (err) {
+            if ((err && Object.keys(err).length > 0) || (err instanceof Error)) {
               errors[sid] = err;
             }
             if (value !== undefined) {

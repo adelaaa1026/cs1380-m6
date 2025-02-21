@@ -67,6 +67,7 @@ groups.del = function(name, callback) {
         delete groups[name];
         callback(null, deletedGroup);
     } else {
+        console.error(`[local/groups] Group not found: ${name}`);
         callback(new Error('Group not found'), null);
     }
 };

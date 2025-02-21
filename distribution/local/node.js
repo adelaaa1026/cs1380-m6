@@ -51,7 +51,7 @@ const start = function(callback) {
         // add RPC in routes
         console.log('[local/node] Registering RPC service in routes...');
         global.distribution.local.routes.put(global.distribution.local.rpc, 'rpc', (err) => {
-            if (err) console.error('Failed to register RPC service:', err);
+            if ((err && Object.keys(err).length > 0) || (err instanceof Error)) console.error('Failed to register RPC service:', err);
         });
     }
 
@@ -133,36 +133,19 @@ const start = function(callback) {
                         require('../all/' + service)({ gid });
 
                     if (!serviceHandler[method]) {
-                        console.log('[local/node] Method not found:', method);
                         res.end(JSON.stringify({ error: 'Method not found', value: null }));
                         return;
                     }
 
                     serviceHandler[method](...args, (errors, values) => {
                         try {
-                            console.log('[local/node] Response from node:', errors, values);
                             if (errors) {
-                                // Preserve full error object including name, message, stack
                                 res.end(JSON.stringify({ 
-                                    error: {
-                                        name: errors.name,
-                                        message: errors.message,
-                                        stack: errors.stack
-                                    }, 
+                                    error: errors.message || errors,
                                     value: values 
                                 }));
-
-                            // if (errors && typeof errors === 'object' && Object.keys(errors).length > 0) {
-                            //     res.end(JSON.stringify({
-                            //         error: errors,
-                            //         value: values
-                            //     }));
-                            // } else {
-                            //     res.end(JSON.stringify({
-                            //         error: null,
-                            //         value: values
-                            //     }));
-                            // }
+                            } else {
+                                res.end(JSON.stringify({ error: null, value: values }));
                             }
                         } catch (e) {
                             res.end(JSON.stringify({
@@ -173,7 +156,6 @@ const start = function(callback) {
                     });
                 });
             } catch (e) {
-                console.error('[local/node] Error parsing request body:', e);
                 res.end(JSON.stringify({ error: e.message, value: null }));
             }
         });

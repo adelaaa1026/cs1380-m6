@@ -64,13 +64,30 @@ function send(message, remote, callback) {
                 console.log('[local/comm] Parsed result:', result);
                 
                 // Convert error object to Error instance if it exists
+                //working
+                // let error = {};
+                // if (result.error && Object.keys(result.error).length > 0) {
+                //     if (typeof result.error === 'object' ) {
+                //         console.log('[local/comm] Error is an object:', result.error);
+                //         error = new Error(result.error.message);
+                //         error.name = result.error.name;
+                //         error.stack = result.error.stack;
+                //     } else {
+                        
+                //         error = new Error(result.error);
+                //     }
+                // }
                 let error = {};
                 if (result.error) {
-                    if (typeof result.error === 'object') {
+                    if (typeof result.error === 'object' && Object.keys(result.error).length > 0) {
+                        // Error is a non-empty object
+                        console.log('[local/comm] Error is an object:', result.error);
                         error = new Error(result.error.message);
                         error.name = result.error.name;
                         error.stack = result.error.stack;
-                    } else {
+                    } else if (typeof result.error === 'string') {
+                        // Error is a string message
+                        console.log('[local/comm] Error is a string:', result.error);
                         error = new Error(result.error);
                     }
                 }

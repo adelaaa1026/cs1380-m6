@@ -18,7 +18,7 @@ const groups = function(config) {
       
       // First get the nodes in current group
       global.distribution.local.groups.get(context.gid, (err, group) => {
-        if (err) {
+        if (err  && Object.keys(err).length > 0) {
           console.error('[all/groups] Error getting group:', err);
           errors[sid] = err instanceof Error ? err : new Error(err.message || err);
           // console.log('[all/groups] Error from node:', sid, errors[sid]);
@@ -47,7 +47,7 @@ const groups = function(config) {
             const sid = global.distribution.util.id.getSID(node);
             
             console.log('[all/groups] Response from node:', sid, err, value);
-            if (err && err !== null) {
+            if (err && Object.keys(err).length !== 0) {
               errors[sid] = err instanceof Error ? err : new Error(err);
             }
             if (value) {
@@ -76,7 +76,7 @@ const groups = function(config) {
       });
 
       global.distribution.local.groups.get(context.gid, (err, currentGroup) => {
-        if (err) {
+        if (err  && Object.keys(err).length > 0) {
           callback(err, null);
           return;
         }
@@ -97,7 +97,7 @@ const groups = function(config) {
             responses++;
             const sid = global.distribution.util.id.getSID(node);
             
-            if (err && Object.keys(err).length > 0) {
+            if ((err && Object.keys(err).length > 0) || (err instanceof Error)) {
               errors[sid] = err;
             }
             if (value) {
@@ -122,7 +122,7 @@ const groups = function(config) {
       console.log('[all/groups] Deleting group from all nodes:', name);
 
       global.distribution.local.groups.get(context.gid, (err, group) => {
-        if (err) {
+        if (err  && Object.keys(err).length > 0) {
           callback(err, null);
           return;
         }
@@ -142,12 +142,11 @@ const groups = function(config) {
           global.distribution.local.comm.send([name], remote, (err, value) => {
             responseCount++;
             const sid = global.distribution.util.id.getSID(node);
-            
-            if (err && Object.keys(err).length > 0) {
-              // errors[sid] = err;
-              errors[sid] = err instanceof Error ? err : new Error(err.message || err);
+            console.log('[all/groups] Response from node:', sid, err, value);
+            if ((err && Object.keys(err).length > 0) || (err instanceof Error)) {
+              errors[sid] = err instanceof Error ? err : new Error(err.message || String(err));
               console.log('[all/groups] Error from node:', sid, errors[sid]);
-            }
+          }
             if (value) {
               values[sid] = value;
             }
@@ -173,7 +172,7 @@ const groups = function(config) {
       });
 
       global.distribution.local.groups.get(context.gid, (err, group) => {
-        if (err) {
+        if (err  && Object.keys(err).length > 0) {
           callback(err, null);
           return;
         }
@@ -194,7 +193,7 @@ const groups = function(config) {
             responseCount++;
             const sid = global.distribution.util.id.getSID(currentNode);
             
-            if (err && Object.keys(err).length > 0) {
+            if ((err && Object.keys(err).length > 0) || (err instanceof Error)) {
               errors[sid] = err;
             }
             if (value) {
@@ -222,7 +221,7 @@ const groups = function(config) {
       });
 
       global.distribution.local.groups.get(context.gid, (err, group) => {
-        if (err) {
+        if (err  && Object.keys(err).length > 0) {
           callback(err, null);
           return;
         }
@@ -243,7 +242,7 @@ const groups = function(config) {
             responseCount++;
             const sid = global.distribution.util.id.getSID(currentNode);
             
-            if (err && Object.keys(err).length > 0) {
+            if ((err && Object.keys(err).length > 0) || (err instanceof Error)) {
               errors[sid] = err;
             }
             if (value) {
