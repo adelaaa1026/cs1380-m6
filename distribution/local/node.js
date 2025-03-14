@@ -57,7 +57,7 @@ const start = function(callback) {
 
     console.log('[local/node] Creating HTTP server...');
     const server = http.createServer((req, res) => {
-        console.log('[local/node] Received request:', req.method, req.url);
+        // console.log('[local/node] Received request:', req.method, req.url);
         if (req.method !== 'PUT') {
             res.end(JSON.stringify({ error: 'Method not allowed', value: null }));
             return;
@@ -99,6 +99,7 @@ const start = function(callback) {
         req.on('end', () => {
             try {
                 const args = JSON.parse(body);
+                // console.log("node received args: ", args);
 
                 if (service === 'status' && method === 'stop') {
                     server.close(() => {
@@ -123,10 +124,12 @@ const start = function(callback) {
 
                 global.distribution.local.routes.get(service, (e, v) => {
                     if (e) {
+                        console.log("error in routes.get: ", e, v);
                         res.end(JSON.stringify({ error: 'Service not found', value: null }));
                         return;
                     }
                     
+                    // console.log("node received service: ", service);
                     // Use all/service for group requests, local/service for local requests
                     const serviceHandler = gid === 'local' ? 
                         v : 
@@ -137,14 +140,22 @@ const start = function(callback) {
                         return;
                     }
 
+                    // console.log("node received method: ", method);
                     serviceHandler[method](...args, (errors, values) => {
+                        console.log("called the service handler, error, values: ", errors, values);
                         try {
                             if (errors) {
+                                console.log("node received errors: ", errors);
                                 res.end(JSON.stringify({ 
                                     error: errors.message || errors,
                                     value: values 
                                 }));
                             } else {
+                                // if (gid === "local") {
+                                //     res.end(JSON.stringify({ error: null, value: values }));
+                                // } else {
+                                //     res.end(JSON.stringify({ error: {}, value: values }));
+                                // }
                                 res.end(JSON.stringify({ error: null, value: values }));
                             }
                         } catch (e) {

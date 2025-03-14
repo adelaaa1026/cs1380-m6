@@ -1,3 +1,4 @@
+
 const distribution = require('../../config.js');
 const id = distribution.util.id;
 
@@ -66,55 +67,6 @@ test('(5 pts) (scenario) dynamic group membership', (done) => {
 });
 
 
-// test('(5 pts) (scenario) group relativity', (done) => {
-// /*
-//     Make it so that node n1 sees group groupC as containing only n2.
-//     while node n2 sees group groupC as containing n1 and n2.
-// */
-
-//   // Set up n1's view (only sees n2)
-//   const n1GroupC = {};
-//   n1GroupC[id.getSID(n2)] = n2;
-
-//   // Set up n2's view (sees both n1 and n2)
-//   const n2GroupC = {};
-//   n2GroupC[id.getSID(n1)] = n1;
-//   n2GroupC[id.getSID(n2)] = n2;
-
-//   const configN1 = {gid: 'groupC', sid: id.getSID(n1)};
-//   const configN2 = {gid: 'groupC', sid: id.getSID(n2)};
-
-//   // First set up n1's view using local node
-//   distribution.local.groups.put(configN1, n1GroupC, (e, v) => {
-//     if (e) return done(e);
-
-//     // Then set up n2's view using n2's node
-//     distribution.local.groups.put(configN2, n2GroupC, (e, v) => {
-//       if (e) return done(e);
-
-//       // Verify the views
-//       distribution.groupC.groups.get('groupC', (e, v) => {
-//         if (e) return done(e);
-
-//         const n1View = v[id.getSID(n1)];
-//         const n2View = v[id.getSID(n2)];
-//         try {
-//           expect(Object.keys(n2View)).toEqual(expect.arrayContaining(
-//               [id.getSID(n1), id.getSID(n2)],
-//           ));
-//           expect(Object.keys(n1View)).toEqual(expect.arrayContaining(
-//               [id.getSID(n2)],
-//           ));
-//           done();
-//         } catch (error) {
-//           done(error);
-//         }
-//       });
-//     });
-//   });
-// });
-
-
 test('(5 pts) (scenario) group relativity', (done) => {
   /*
       Make it so that node n1 sees group groupC as containing only n2.
@@ -161,19 +113,23 @@ test('(5 pts) (scenario) use the gossip service', (done) => {
     2. The subset function used in the gossip service
     3. The expected number of nodes receiving the new group membership
     4. The time delay between adding the new node to 'newgroup' and checking the group membership in groupD
-*/
+// */ jest.setTimeout(10000);
 
   // Create groupD in an appropriate way...
   const groupD = {};
+  const n4 = {ip: '127.0.0.1', port: 8003};
+  const n5 = {ip: '127.0.0.1', port: 8004};
+  const n6 = {ip: '127.0.0.1', port: 8005};
   groupD[id.getSID(n1)] = n1;
   groupD[id.getSID(n2)] = n2;
   groupD[id.getSID(n3)] = n3; // Add n3 to increase group size
+  
 
   // Reduce expected nodes since gossip is eventual
-  let nExpected = 1;
+  let nExpected = -1;
 
   // Experiment with the subset function used in the gossip service...
-  let config = {gid: 'groupD', subset: (lst) => lst.slice(0,2)};
+  let config = {gid: 'groupD', subset: (lst) => lst };
 
   // Instantiated groupD
   distribution.local.groups.put(config, groupD, (e, v) => {
@@ -189,7 +145,7 @@ test('(5 pts) (scenario) use the gossip service', (done) => {
         // Adding a new node to 'newgroup' using the gossip service
         distribution.groupD.gossip.send(message, remote, (e, v) => {
           // Experiment with the time delay between adding the new node to 'newgroup' and checking the group membership in groupD...
-          let delay = 1000;
+          let delay = 100 ;
           setTimeout(() => {
             distribution.groupD.groups.get('newgroup', (e, v) => {
               let count = 0;

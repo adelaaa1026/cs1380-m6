@@ -9,7 +9,7 @@ const status = function(config) {
   const context = {};
   context.gid = config.gid || 'all';
 
-  console.log('[all/status] Creating status service for group:', context.gid);
+  console.log('Creating status service for group:', context.gid);
 
   return {
     /**
@@ -41,10 +41,10 @@ const status = function(config) {
           global.distribution.local.comm.send([configuration], remote, (err, value) => {
             responseCount++;
             const sid = global.distribution.util.id.getSID(node);
-            console.log('[all/status] Response from node:', sid, err, value);
+            console.log('Response from node:', sid, err, value);
             //if (err && Object.keys(err).length > 0) {
               if ((err && Object.keys(err).length > 0) || (err instanceof Error)) {
-              console.log('[all/status] Error from node:', sid, err);
+              console.log('Error from node:', sid, err);
               errors[sid] = err;
             } else {
               values[sid] = value;
@@ -76,17 +76,17 @@ const status = function(config) {
      * @param {function} callback - Callback function
      */
     stop: (callback) => {
-      console.log('[all/status] Stopping all nodes in group:', context.gid);
+      console.log('Stopping all nodes in group:', context.gid);
       
       groups.get(context.gid, (err, group) => {
         if ((err && Object.keys(err).length > 0) || (err instanceof Error)) {
-          console.error('[all/status] Error getting group:', err);
+          console.error(' Error getting group:', err);
           callback(err, null);
           return;
         }
 
         const nodes = Object.values(group);
-        console.log('[all/status] Found nodes in group:', {
+        console.log('Found nodes in group:', {
           count: nodes.length,
           nodes: nodes.map(n => `${n.ip}:${n.port}`)
         });
@@ -104,10 +104,10 @@ const status = function(config) {
 
         nodes.forEach(node => {
           const localRemote = { ...remote, node };
-          console.log('[all/status] Sending stop request to node:', `${node.ip}:${node.port}`);
+          console.log('Sending stop request to node:', `${node.ip}:${node.port}`);
           
           distribution.local.comm.send([], localRemote, (err, value) => {
-            console.log('[all/status] Received stop response from node:', {
+            console.log(' Received stop response from node:', {
               node: `${node.ip}:${node.port}`,
               err,
               value
@@ -124,7 +124,7 @@ const status = function(config) {
 
             // Only call callback when all responses are received
             if (responses === nodes.length) {
-              console.log('[all/status] All stop responses received:', {
+              console.log('All stop responses received:', {
                 totalResponses: responses,
                 errors: Object.keys(errors).length
               });
@@ -145,7 +145,7 @@ const status = function(config) {
      * @param {function} callback - Callback function
      */
     spawn: (configuration, callback) => {
-      console.log('[all/status] Spawning new node in group:', context.gid);
+      console.log(' Spawning new node in group:', context.gid);
       
       const message = [configuration];
       const remote = {
@@ -155,7 +155,7 @@ const status = function(config) {
 
       global.distribution.all.comm(config).send(message, remote, (errors, values) => {
         if (Object.keys(errors).length > 0) {
-          console.error('[all/status] Errors spawning node:', errors);
+          console.error('Errors spawning node:', errors);
           callback(errors, null);
           return;
         }

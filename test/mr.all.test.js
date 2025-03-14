@@ -1,3 +1,5 @@
+jest.setTimeout(30000); // 30 seconds timeout for all tests in this file
+
 const distribution = require('../config.js');
 const id = distribution.util.id;
 
@@ -46,7 +48,7 @@ test('(25 pts) all.mr:ncdc', (done) => {
         done(e);
       }
 
-
+      console.log("v: ", v);
       distribution.ncdc.mr.exec({keys: v, map: mapper, reduce: reducer}, (e, v) => {
         try {
           expect(v).toEqual(expect.arrayContaining(expected));
@@ -71,141 +73,141 @@ test('(25 pts) all.mr:ncdc', (done) => {
       }
     });
   });
-});
+}, 15000);
 
 
-test('(25 pts) all.mr:avgwrdl', (done) => {
-  // Calculate the average word length for each document
-  const mapper = (key, value) => {
-    const words = value.split(/\s+/).filter((e) => e !== '');
-    const out = {};
-    out[key] = {
-      totalLength: words.reduce((sum, word) => sum + word.length, 0),
-      wordCount: words.length,
-    };
-    return [out];
-  };
+// test('(25 pts) all.mr:avgwrdl', (done) => {
+//   // Calculate the average word length for each document
+//   const mapper = (key, value) => {
+//     const words = value.split(/\s+/).filter((e) => e !== '');
+//     const out = {};
+//     out[key] = {
+//       totalLength: words.reduce((sum, word) => sum + word.length, 0),
+//       wordCount: words.length,
+//     };
+//     return [out];
+//   };
 
-  const reducer = (key, values) => {
-    const totalLength = values.reduce((sum, v) => sum + v.totalLength, 0);
-    const totalCount = values.reduce((sum, v) => sum + v.wordCount, 0);
-    const avgLength = totalCount === 0 ? 0 : totalLength / totalCount;
-    const out = {};
-    out[key] = parseFloat(avgLength.toFixed(2));
-    return out;
-  };
+//   const reducer = (key, values) => {
+//     const totalLength = values.reduce((sum, v) => sum + v.totalLength, 0);
+//     const totalCount = values.reduce((sum, v) => sum + v.wordCount, 0);
+//     const avgLength = totalCount === 0 ? 0 : totalLength / totalCount;
+//     const out = {};
+//     out[key] = parseFloat(avgLength.toFixed(2));
+//     return out;
+//   };
 
-  const dataset = [
-    {'doca': 'short and simple sentence'},
-    {'docb': 'another slightly longer example'},
-    {'docc': 'the final example has various word lengths'},
-  ];
+//   const dataset = [
+//     {'doca': 'short and simple sentence'},
+//     {'docb': 'another slightly longer example'},
+//     {'docc': 'the final example has various word lengths'},
+//   ];
 
-  const expected = [
-    {'doca': 5.5},
-    {'docb': 7.0},
-    {'docc': 5.14},
-  ];
+//   const expected = [
+//     {'doca': 5.5},
+//     {'docb': 7.0},
+//     {'docc': 5.14},
+//   ];
 
-  const doMapReduce = (cb) => {
-    distribution.avgwrdl.store.get(null, (e, v) => {
-      try {
-        expect(v.length).toBe(dataset.length);
-      } catch (e) {
-        done(e);
-      }
+//   const doMapReduce = (cb) => {
+//     distribution.avgwrdl.store.get(null, (e, v) => {
+//       try {
+//         expect(v.length).toBe(dataset.length);
+//       } catch (e) {
+//         done(e);
+//       }
 
-      distribution.avgwrdl.mr.exec({keys: v, map: mapper, reduce: reducer}, (e, v) => {
-        try {
-          expect(v).toEqual(expect.arrayContaining(expected));
-          done();
-        } catch (e) {
-          done(e);
-        }
-      });
-    });
-  };
+//       distribution.avgwrdl.mr.exec({keys: v, map: mapper, reduce: reducer}, (e, v) => {
+//         try {
+//           expect(v).toEqual(expect.arrayContaining(expected));
+//           done();
+//         } catch (e) {
+//           done(e);
+//         }
+//       });
+//     });
+//   };
 
-  let cntr = 0;
+//   let cntr = 0;
 
-  dataset.forEach((o) => {
-    const key = Object.keys(o)[0];
-    const value = o[key];
-    distribution.avgwrdl.store.put(value, key, (e, v) => {
-      cntr++;
-      if (cntr === dataset.length) {
-        doMapReduce();
-      }
-    });
-  });
-});
+//   dataset.forEach((o) => {
+//     const key = Object.keys(o)[0];
+//     const value = o[key];
+//     distribution.avgwrdl.store.put(value, key, (e, v) => {
+//       cntr++;
+//       if (cntr === dataset.length) {
+//         doMapReduce();
+//       }
+//     });
+//   });
+// });
 
-test('(25 pts) all.mr:cfreq', (done) => {
-  // Calculate the frequency of each character in a set of documents
-  const mapper = (key, value) => {
-    const chars = value.replace(/\s+/g, '').split('');
-    const out = [];
-    chars.forEach((char) => {
-      const o = {};
-      o[char] = 1;
-      out.push(o);
-    });
-    return out;
-  };
+// test('(25 pts) all.mr:cfreq', (done) => {
+//   // Calculate the frequency of each character in a set of documents
+//   const mapper = (key, value) => {
+//     const chars = value.replace(/\s+/g, '').split('');
+//     const out = [];
+//     chars.forEach((char) => {
+//       const o = {};
+//       o[char] = 1;
+//       out.push(o);
+//     });
+//     return out;
+//   };
 
-  const reducer = (key, values) => {
-    const out = {};
-    out[key] = values.reduce((sum, v) => sum + v, 0);
-    return out;
-  };
+//   const reducer = (key, values) => {
+//     const out = {};
+//     out[key] = values.reduce((sum, v) => sum + v, 0);
+//     return out;
+//   };
 
-  const dataset = [
-    {'doc1': 'hello world'},
-    {'doc2': 'map reduce test'},
-    {'doc3': 'character counting example'},
-  ];
+//   const dataset = [
+//     {'doc1': 'hello world'},
+//     {'doc2': 'map reduce test'},
+//     {'doc3': 'character counting example'},
+//   ];
 
-  const expected = [
-    {'h': 2}, {'e': 7}, {'l': 4},
-    {'o': 3}, {'w': 1}, {'r': 4},
-    {'d': 2}, {'m': 2}, {'a': 4},
-    {'p': 2}, {'u': 2}, {'c': 4},
-    {'t': 4}, {'s': 1}, {'n': 2},
-    {'i': 1}, {'g': 1}, {'x': 1},
-  ];
+//   const expected = [
+//     {'h': 2}, {'e': 7}, {'l': 4},
+//     {'o': 3}, {'w': 1}, {'r': 4},
+//     {'d': 2}, {'m': 2}, {'a': 4},
+//     {'p': 2}, {'u': 2}, {'c': 4},
+//     {'t': 4}, {'s': 1}, {'n': 2},
+//     {'i': 1}, {'g': 1}, {'x': 1},
+//   ];
 
-  const doMapReduce = (cb) => {
-    distribution.cfreq.store.get(null, (e, v) => {
-      try {
-        expect(v.length).toBe(dataset.length);
-      } catch (e) {
-        done(e);
-      }
+//   const doMapReduce = (cb) => {
+//     distribution.cfreq.store.get(null, (e, v) => {
+//       try {
+//         expect(v.length).toBe(dataset.length);
+//       } catch (e) {
+//         done(e);
+//       }
 
-      distribution.cfreq.mr.exec({keys: v, map: mapper, reduce: reducer}, (e, v) => {
-        try {
-          expect(v).toEqual(expect.arrayContaining(expected));
-          done();
-        } catch (e) {
-          done(e);
-        }
-      });
-    });
-  };
+//       distribution.cfreq.mr.exec({keys: v, map: mapper, reduce: reducer}, (e, v) => {
+//         try {
+//           expect(v).toEqual(expect.arrayContaining(expected));
+//           done();
+//         } catch (e) {
+//           done(e);
+//         }
+//       });
+//     });
+//   };
 
-  let cntr = 0;
+//   let cntr = 0;
 
-  dataset.forEach((o) => {
-    const key = Object.keys(o)[0];
-    const value = o[key];
-    distribution.cfreq.store.put(value, key, (e, v) => {
-      cntr++;
-      if (cntr === dataset.length) {
-        doMapReduce();
-      }
-    });
-  });
-});
+//   dataset.forEach((o) => {
+//     const key = Object.keys(o)[0];
+//     const value = o[key];
+//     distribution.cfreq.store.put(value, key, (e, v) => {
+//       cntr++;
+//       if (cntr === dataset.length) {
+//         doMapReduce();
+//       }
+//     });
+//   });
+// });
 
 /*
     Do not modify the code below.

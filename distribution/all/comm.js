@@ -1,3 +1,4 @@
+
 /** @typedef {import("../types").Callback} Callback */
 
 /**
@@ -24,24 +25,24 @@ function comm(config) {
    * @param {Callback} callback
    */
   function send(message, remote, callback) {
-    // For 'random' method, we expect immediate errors, so timeout can be very short
-    const TIMEOUT = message[0] === 'random' ? 100 : 500;
     
-    console.log('[all/comm] Starting send with:', {
-      message,
-      remote,
-      gid: context.gid
-    });
+    // const TIMEOUT = message[0] === 'random' ? 100 : 500;
+    const TIMEOUT = 500;
+    
+    // console.log('[all/comm] Starting send with:', {
+    //   message,
+    //   remote,
+    //   gid: context.gid
+    // });
 
     groups.get(context.gid, (err, group) => {
       if ((err && Object.keys(err).length > 0) || (err instanceof Error)) {
-        console.error('[all/comm] Error getting group:', err);
         callback(err, null);
         return;
       }
 
       const nodes = Object.values(group);
-      console.log('[all/comm] Found nodes:', nodes.map(n => `${n.ip}:${n.port}`));
+      // console.log('inside all/comm, Found nodes:', nodes.map(n => `${n.ip}:${n.port}`));
       
       let responseCount = 0;
       const errors = {};
@@ -53,11 +54,6 @@ function comm(config) {
           isCompleted = true;
           clearTimeout(timeoutId);
           
-          console.log('[all/comm] Completing with:', {
-            errors,
-            values,
-            responseCount
-          });
 
           const hasErrors = Object.values(errors).some(err => 
             err !== null && err instanceof Error
@@ -65,12 +61,6 @@ function comm(config) {
 
           const hasValues = Object.values(values).some(v => v !== null);
           
-          console.log('[all/comm] Status check:', {
-            hasErrors,
-            hasValues,
-            willReturnEmptyValues: hasErrors || !hasValues
-          });
-
           callback(
             hasErrors ? errors : {},
             hasErrors || !hasValues ? {} : values
@@ -79,7 +69,7 @@ function comm(config) {
       };
 
       const timeoutId = setTimeout(() => {
-        console.log('[all/comm] Timeout reached');
+  
         nodes.forEach(node => {
           const sid = global.distribution.util.id.getSID(node);
           if (!errors[sid]) {
@@ -90,49 +80,21 @@ function comm(config) {
         complete();
       }, TIMEOUT);
 
-      if (message[0] === 'random') {
-        const localOptions = {
-          ...remote,
-          timeout: 50  // Very short timeout for known error case
-        };
         nodes.forEach(node => {
           const sid = global.distribution.util.id.getSID(node);
-          console.log('[all/comm] Sending to node:', {
-            node: `${node.ip}:${node.port}`,
-            sid
-          });
-          distribution.local.comm.send(message, {...localOptions, node}, (error, value) => {
-            responseCount++;
-            console.log('[all/comm] Received response from node:', {
-              node: `${node.ip}:${node.port}`,
-              sid,
-              error,
-              value,
-              responseCount
-            });
-            errors[sid] = error;
-            values[sid] = value;
-            if (responseCount === nodes.length) {
-              complete();
-            }
-          });
-        });
-      } else {
-        nodes.forEach(node => {
-          const sid = global.distribution.util.id.getSID(node);
-          console.log('[all/comm] Sending to node:', {
-            node: `${node.ip}:${node.port}`,
-            sid
-          });
+          // console.log('Sending to node:', {
+          //   node: `${node.ip}:${node.port}`,
+          //   sid
+          // });
           distribution.local.comm.send(message, {...remote, node}, (error, value) => {
             responseCount++;
-            console.log('[all/comm] Received response from node:', {
-              node: `${node.ip}:${node.port}`,
-              sid,
-              error,
-              value,
-              responseCount
-            });
+            // console.log('Received response from node:', {
+            //   node: `${node.ip}:${node.port}`,
+            //   sid,
+            //   error,
+            //   value,
+            //   responseCount
+            // });
             errors[sid] = error;
             values[sid] = value;
             if (responseCount === nodes.length) {
@@ -140,7 +102,7 @@ function comm(config) {
             }
           });
         });
-      }
+      // }
     });
   }
 

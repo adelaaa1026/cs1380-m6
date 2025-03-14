@@ -54,11 +54,47 @@ function naiveHash(kid, nids) {
   return nids[idToNum(kid) % nids.length];
 }
 
-function consistentHash(kid, nids) {
+// Convert a string to a numerical representation using a hash function
+function hashToNumber(str) {
+  return parseInt(crypto.createHash('sha256').update(str).digest('hex'), 16);
 }
 
+function consistentHash(kid, nids) {
+  const ring = nids.map(nid => ({ nid, hash: getID(nid) }));
+  const kidHash = getID(kid);
+  // console.log("kidHash: ", kidHash);
+  // console.log(" ring: ", ring);
+ 
+  ring.sort((a, b) => a.hash.localeCompare(b.hash));
+  // console.log("sorted ring: ", ring);
+ 
+  
+  for (let i = 0; i < ring.length; i++) {
+    if (ring[i].hash.localeCompare(kidHash) < 0) { // smaller or larger?
+      console.log("ring[i].nid: ", ring[i].nid);
+      return ring[i].nid;
+    }
+  }
+  // console.log("ring[0].nid: ", ring[0].nid);
+
+  return ring[0].nid;
+}
 
 function rendezvousHash(kid, nids) {
+  let maxHash = -1;
+  let selectedNid = null;
+
+  nids.forEach(nid => {
+    const combined = kid + nid;
+    const hashValue = hashToNumber(combined);
+
+    if (hashValue > maxHash) {
+      maxHash = hashValue;
+      selectedNid = nid;
+    }
+  });
+
+  return selectedNid;
 }
 
 module.exports = {

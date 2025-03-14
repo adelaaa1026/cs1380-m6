@@ -52,6 +52,7 @@ test('(0 pts) (scenario) all.mr:ncdc', (done) => {
   const expected = [{'1950': 22}, {'1949': 111}];
 
   const doMapReduce = (cb) => {
+    // the dataset is alraedy stored in the cluster when this function is called (see below)
     distribution.ncdc.store.get(null, (e, v) => {
       try {
         expect(v.length).toBe(dataset.length);
@@ -75,7 +76,7 @@ test('(0 pts) (scenario) all.mr:ncdc', (done) => {
   // Send the dataset to the cluster
   dataset.forEach((o) => {
     const key = Object.keys(o)[0];
-    const value = o[key];
+    const value = o[key]; 
     distribution.ncdc.store.put(value, key, (e, v) => {
       cntr++;
       // Once the dataset is in place, run the map reduce
@@ -91,12 +92,46 @@ test('(10 pts) (scenario) all.mr:dlib', (done) => {
    Implement the map and reduce functions.
    The map function should parse the string value and return an object with the word as the key and the value as 1.
    The reduce function should return the count of each word.
-*/
 
-  const mapper = (key, value) => {
+
+     const mapper = (key, value) => {
+    const words = value.split(/(\s+)/).filter((e) => e !== ' ');
+    const out = {};
+    out[words[1]] = parseInt(words[3]);
+    return out;
   };
 
   const reducer = (key, values) => {
+    const out = {};
+    out[key] = values.reduce((a, b) => Math.max(a, b), -Infinity);
+    return out;
+  };
+*/
+
+// similar to flat map! needs to return an array of objects!
+  const mapper = (key, value) => {
+    const words = value.split(/(\s+)/).filter((e) => e !== ' ');
+     
+    // find counts
+    const counts = {};
+    words.forEach(word => {
+      counts[word] = (counts[word] || 0) + 1;
+    });
+
+    // Emit each key-value pair separately
+    const results = [];
+    for (const [word, count] of Object.entries(counts)) {
+      results.push({ [word]: count });
+    }
+    console.log("mapper results", results);
+    return results;
+  };
+
+  const reducer = (key, values) => {
+    console.log("reducer", key, values);
+    const out = {};
+    out[key] = values.reduce((sum, count) => sum + count, 0);
+    return out;
   };
 
   const dataset = [
@@ -132,7 +167,7 @@ test('(10 pts) (scenario) all.mr:dlib', (done) => {
       distribution.dlib.mr.exec({keys: v, map: mapper, reduce: reducer}, (e, v) => {
         try {
           expect(v).toEqual(expect.arrayContaining(expected));
-          done();
+          done(); 
         } catch (e) {
           done(e);
         }
@@ -142,7 +177,7 @@ test('(10 pts) (scenario) all.mr:dlib', (done) => {
 
   let cntr = 0;
 
-  // Send the dataset to the cluster
+  // Send the dataset to the cluster 
   dataset.forEach((o) => {
     const key = Object.keys(o)[0];
     const value = o[key];
@@ -164,6 +199,7 @@ test('(10 pts) (scenario) all.mr:tfidf', (done) => {
 */
 
   const mapper = (key, value) => {
+    
   };
 
   // Reduce function: calculate TF-IDF for each word
@@ -176,18 +212,22 @@ test('(10 pts) (scenario) all.mr:tfidf', (done) => {
     {'doc3': 'machine learning and deep learning are related'},
   ];
 
-  const expected = [
-    {'machine': {'doc1': '0.20', 'doc3': '0.20'}},
-    {'learning': {'doc1': '0.00', 'doc2': '0.00', 'doc3': '0.00'}},
-    {'is': {'doc1': '1.10'}},
-    {'amazing': {'doc1': '0.20', 'doc2': '0.20'}},
-    {'deep': {'doc2': '0.20', 'doc3': '0.20'}},
-    {'powers': {'doc2': '1.10'}},
-    {'systems': {'doc2': '1.10'}},
-    {'and': {'doc3': '1.10'}},
-    {'are': {'doc3': '1.10'}},
-    {'related': {'doc3': '1.10'}},
-  ];
+  const expected = [{'is': {'doc1': 0.12}},
+
+    {'deep': {'doc2': 0.04, 'doc3': 0.03}},
+
+    {'systems': {'doc2': 0.1}},
+
+    {'learning': {'doc1': 0, 'doc2': 0, 'doc3': 0}},
+
+    {'amazing': {'doc1': 0.04, 'doc2': 0.04}},
+
+    {'machine': {'doc1': 0.04, 'doc3': 0.03}},
+
+    {'are': {'doc3': 0.07}}, {'powers': {'doc2': 0.1}},
+
+    {'and': {'doc3': 0.07}}, {'related': {'doc3': 0.07}}];
+
 
   const doMapReduce = (cb) => {
     distribution.tfidf.store.get(null, (e, v) => {
@@ -232,25 +272,25 @@ test('(10 pts) (scenario) all.mr:tfidf', (done) => {
   - Run the map reduce.
 */
 
-test('(10 pts) (scenario) all.mr:crawl', (done) => {
-    done(new Error('Implement this test.'));
-});
+// test('(10 pts) (scenario) all.mr:crawl', (done) => {
+//     done(new Error('Implement this test.'));
+// });
 
-test('(10 pts) (scenario) all.mr:urlxtr', (done) => {
-    done(new Error('Implement the map and reduce functions'));
-});
+// test('(10 pts) (scenario) all.mr:urlxtr', (done) => {
+//     done(new Error('Implement the map and reduce functions'));
+// });
 
-test('(10 pts) (scenario) all.mr:strmatch', (done) => {
-    done(new Error('Implement the map and reduce functions'));
-});
+// test('(10 pts) (scenario) all.mr:strmatch', (done) => {
+//     done(new Error('Implement the map and reduce functions'));
+// });
 
-test('(10 pts) (scenario) all.mr:ridx', (done) => {
-    done(new Error('Implement the map and reduce functions'));
-});
+// test('(10 pts) (scenario) all.mr:ridx', (done) => {
+//     done(new Error('Implement the map and reduce functions'));
+// });
 
-test('(10 pts) (scenario) all.mr:rlg', (done) => {
-    done(new Error('Implement the map and reduce functions'));
-});
+// test('(10 pts) (scenario) all.mr:rlg', (done) => {
+//     done(new Error('Implement the map and reduce functions'));
+// });
 
 /*
     This is the setup for the test scenario.

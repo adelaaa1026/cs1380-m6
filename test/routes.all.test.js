@@ -1,4 +1,5 @@
 const distribution = require('../config.js');
+// const distribution = require('@brown-ds/distribution/distribution/util/serialization');
 const id = distribution.util.id;
 
 test('(2 pts) all.routes.put()', (done) => {
@@ -19,6 +20,7 @@ test('(2 pts) all.routes.put()', (done) => {
 
         distribution.local.comm.send(['gotcha'], r1, (e, v) => {
           try {
+            console.log("e, v for r1: ", e, v);
             expect(e).toBeFalsy();
             expect(v.gotcha()).toBe('gotcha!');
           } catch (error) {
@@ -27,6 +29,7 @@ test('(2 pts) all.routes.put()', (done) => {
           }
           distribution.local.comm.send(['gotcha'], r2, (e, v) => {
             try {
+              console.log("e, v for r2: ", e, v);
               expect(e).toBeFalsy();
               expect(v.gotcha()).toBe('gotcha!');
             } catch (error) {

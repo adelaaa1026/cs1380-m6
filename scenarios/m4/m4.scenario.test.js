@@ -2,6 +2,13 @@ const distribution = require('../../config.js');
 const util = distribution.util;
 const id = distribution.util.id;
 
+const n1 = {ip: '127.0.0.1', port: 9001};
+const n2 = {ip: '127.0.0.1', port: 9002};
+const n3 = {ip: '127.0.0.1', port: 9003};
+const n4 = {ip: '127.0.0.1', port: 9004};
+const n5 = {ip: '127.0.0.1', port: 9005};
+const n6 = {ip: '127.0.0.1', port: 9006};
+
 test('(5 pts) (scenario) use the local store', (done) => {
   /*
       Use the distributed store to put a key-value pair.
@@ -10,7 +17,7 @@ test('(5 pts) (scenario) use the local store', (done) => {
   const user = {first: 'Josiah', last: 'Carberry'};
   const key = 'jcarbspsg';
 
-
+  distribution.local.store.put(user, key, (e, v) => {
   function check() {
     distribution.local.store.get(key, (e, v) => {
       try {
@@ -21,6 +28,8 @@ test('(5 pts) (scenario) use the local store', (done) => {
       }
     });
   }
+  check();
+  })
 });
 
 
@@ -41,6 +50,7 @@ test('(5 pts) (scenario) hash functions return different nodes', () => {
   ];
   let key1 = '?';
   let key2 = '?';
+ 
 
 
   const kid1 = util.id.getID(key1);
@@ -67,7 +77,7 @@ test('(5 pts) (scenario) hash functions return the same node', () => {
     util.id.getNID({ip: '192.168.0.4', port: 8000}),
   ];
 
-  let key = '?';
+  let key = '123';
 
   const kid = util.id.getID(key);
 
@@ -79,12 +89,7 @@ test('(5 pts) (scenario) hash functions return the same node', () => {
   expect(b).toBe(c);
 });
 
-const n1 = {ip: '127.0.0.1', port: 9001};
-const n2 = {ip: '127.0.0.1', port: 9002};
-const n3 = {ip: '127.0.0.1', port: 9003};
-const n4 = {ip: '127.0.0.1', port: 9004};
-const n5 = {ip: '127.0.0.1', port: 9005};
-const n6 = {ip: '127.0.0.1', port: 9006};
+
 
 test('(5 pts) (scenario) use mem.reconf', (done) => {
   /*
@@ -98,6 +103,8 @@ test('(5 pts) (scenario) use mem.reconf', (done) => {
   const mygroupGroup = {};
   mygroupGroup[id.getSID(n1)] = n1;
   // Add more nodes to the group...
+  mygroupGroup[id.getSID(n2)] = n2;
+  // mygroupGroup[id.getSID(n3)] = n3;
 
   // Create a set of items and corresponding keys...
   const keysAndItems = [
@@ -105,7 +112,7 @@ test('(5 pts) (scenario) use mem.reconf', (done) => {
   ];
 
   // Experiment with different hash functions...
-  const config = {gid: 'mygroup', hash: '?'};
+  const config = {gid: 'mygroup', hash: id.naiveHash};
 
   distribution.local.groups.put(config, mygroupGroup, (e, v) => {
     // Now, place each one of the items you made inside the group...
@@ -115,7 +122,7 @@ test('(5 pts) (scenario) use mem.reconf', (done) => {
         const groupCopy = {...mygroupGroup};
 
         // Remove a node from the group...
-        let toRemove = '?';
+        let toRemove = 'n1';
         distribution.mygroup.groups.rem(
             'mygroup',
             id.getSID(toRemove),
@@ -137,7 +144,7 @@ test('(5 pts) (scenario) use mem.reconf', (done) => {
     ];
 
     // Based on where you think the items should be, send the messages to the right nodes...
-    const remote = {node: '?', service: 'mem', method: 'get'};
+    const remote = {node: n2, service: 'mem', method: 'get'};
     distribution.local.comm.send(messages[0], remote, (e, v) => {
       try {
         expect(e).toBeFalsy();

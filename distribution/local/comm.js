@@ -1,3 +1,5 @@
+const serialization  = require('@brown-ds/distribution/distribution/util/serialization');
+
 const http = require('node:http');
 /** @typedef {import("../types").Callback} Callback */
 /** @typedef {import("../types").Node} Node */
@@ -28,7 +30,7 @@ function send(message, remote, callback) {
     // });
 
     callback = callback || function() { };
-
+    // console.log("remote is: ", remote);
     if (!remote || !remote.node || !remote.service || !remote.method) {
         console.error('[local/comm] Invalid remote configuration');
         callback(new Error('The remote node is invalid'), null);
@@ -56,12 +58,12 @@ function send(message, remote, callback) {
         });
          
         res.on('end', () => {
-            console.log('[local/comm] Raw response data length:', data.length);
-            console.log('[local/comm] Raw response data:', data);
+            // console.log('[local/comm] Raw response data length:', data.length);
+            // console.log('[local/comm] Raw response data:', data);
 
             try {
                 const result = JSON.parse(data);
-                console.log('[local/comm] Parsed result:', result);
+                // console.log('[local/comm] Parsed result:', result);
                 
                 // Convert error object to Error instance if it exists
                 //working
@@ -77,8 +79,24 @@ function send(message, remote, callback) {
                 //         error = new Error(result.error);
                 //     }
                 // }
-                let error = {};
+          
+                let error = null;
+                if (!result.error) {
+                    // Only deserialize if the value is a serialized string
+                    if (typeof result.value === 'string' && result.value.includes('"type":"')) {
+                        try {
+                            callback(null, serialization.deserialize(result.value));
+                        } catch (e) {
+                            console.warn('Deserialization failed, using raw value:', e);
+                            callback(null, result.value);
+                        }
+                    } else {
+                        // If it's not a serialized string, use the value as is
+                        callback(null, result.value);
+                    }
+                }
                 if (result.error) {
+                    error = {}
                     if (typeof result.error === 'object' && Object.keys(result.error).length > 0) {
                         // Error is a non-empty object
                         console.log('[local/comm] Error is an object:', result.error);
@@ -90,9 +108,11 @@ function send(message, remote, callback) {
                         console.log('[local/comm] Error is a string:', result.error);
                         error = new Error(result.error);
                     }
+
+                    callback(error , result.value);
                 }
-                
-                callback(error, result.value);
+                 
+                 
             } catch (error) {
                 console.error('[local/comm] Error parsing data:', data);
                 console.error('[local/comm] Parsing error:', error);
