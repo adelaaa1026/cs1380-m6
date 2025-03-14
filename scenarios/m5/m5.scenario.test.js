@@ -94,18 +94,7 @@ test('(10 pts) (scenario) all.mr:dlib', (done) => {
    The reduce function should return the count of each word.
 
 
-     const mapper = (key, value) => {
-    const words = value.split(/(\s+)/).filter((e) => e !== ' ');
-    const out = {};
-    out[words[1]] = parseInt(words[3]);
-    return out;
-  };
-
-  const reducer = (key, values) => {
-    const out = {};
-    out[key] = values.reduce((a, b) => Math.max(a, b), -Infinity);
-    return out;
-  };
+   
 */
 
 // similar to flat map! needs to return an array of objects!
@@ -196,15 +185,50 @@ test('(10 pts) (scenario) all.mr:tfidf', (done) => {
     Implement the map and reduce functions.
     The map function should parse the string value and return an object with the word as the key and the document and count as the value.
     The reduce function should return the TF-IDF for each word.
-*/
+  
+    const mapper = (key, value) => {
+    const words = value.split(/(\s+)/).filter((e) => e !== ' ');
+     
+   */
 
-  const mapper = (key, value) => {
-    
-  };
+  const mapper = (doc_id, doc_content) => {
+    const words = doc_content.toLowerCase().match(/\b\w+\b/g) || []; // Tokenization
+    const totalWords = words.length; // Total words in document
+    const termCounts = {};
 
-  // Reduce function: calculate TF-IDF for each word
-  const reducer = (key, values) => {
-  };
+    // Calculate term frequency (TF)
+    words.forEach(word => {
+        termCounts[word] = (termCounts[word] || 0) + 1;
+    });
+
+    // Normalize TF
+    const results = [];
+    for (const [word, count] of Object.entries(termCounts)) {
+        const tf = count / totalWords; // TF = term count / total words in doc
+        results.push({ [word]: [doc_id, tf] });
+    }
+
+    console.log("Mapper results:", results);
+    return results;
+};
+
+const reducer = (word, values) => {
+   console.log("reducer is now", word, values);
+   reduced_values = values.reduce((acc, currentValue, index, array) => {
+    if (index % 2 === 0) {
+        // Use the current value as the key and the next value as the value
+        const idf = Math.log10(3 / (values.length/2));
+        acc[currentValue] = parseFloat((array[index + 1] * idf).toFixed(2));
+        // console.log("word is now", word, "and values/2 is", values.length/2);
+    }
+    return acc;
+}, {});
+
+    out = {}
+    out[word] = reduced_values;
+    console.log("out is now", out);
+   return out;
+};
 
   const dataset = [
     {'doc1': 'machine learning is amazing'},
@@ -239,6 +263,7 @@ test('(10 pts) (scenario) all.mr:tfidf', (done) => {
 
       distribution.tfidf.mr.exec({keys: v, map: mapper, reduce: reducer}, (e, v) => {
         try {
+          console.log("map reduce results", v);
           expect(v).toEqual(expect.arrayContaining(expected));
           done();
         } catch (e) {
@@ -264,17 +289,8 @@ test('(10 pts) (scenario) all.mr:tfidf', (done) => {
   });
 });
 
-/*
-  The rest of the scenarios are left as an exercise.
-  For each one you'd like to implement, you'll need to:
-  - Define the map and reduce functions.
-  - Create a dataset.
-  - Run the map reduce.
-*/
-
 // test('(10 pts) (scenario) all.mr:crawl', (done) => {
-//     done(new Error('Implement this test.'));
-// });
+//     done(new Error('Implement the map and reduce functions'));
 
 // test('(10 pts) (scenario) all.mr:urlxtr', (done) => {
 //     done(new Error('Implement the map and reduce functions'));
