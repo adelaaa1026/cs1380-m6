@@ -10,7 +10,7 @@ routes.get = function(configuration, callback) {
  
     const serviceName = typeof configuration === 'string' ? configuration : configuration.service || configuration.serviceName;
     
-    console.log(' Getting service:', serviceName);
+    // console.log(' Getting service:', serviceName);
 
  
     if (routesMapping[serviceName]) {

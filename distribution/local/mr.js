@@ -13,6 +13,7 @@ function mr() {
       
       try {
         const { mapFn, reduceFn, jobId, coordinatorNode, gid, allNodes } = config;
+        console.log("coordinatorNode: ", coordinatorNode);
         const groupId = gid || 'local'; // Use the provided group ID or default to 'local'
         console.log("config in mr: ", config);
         console.log(`[MR-${jobId}] Registering MapReduce for group: ${groupId}`);
@@ -147,7 +148,8 @@ function mr() {
               // Process each map result and send to appropriate node
               console.log("starting shuffling, results in shuffle: ", results);
               results.forEach(result => {
-                Object.entries(result).forEach(([key, value]) => {
+                for (const key in result) {
+                  keyGroups[key] = true; // Mark this key as processed
                   
                   // Use consistent hash from id.js to determine which node gets this key
                   const targetNid = global.distribution.util.id.consistentHash(key, nodeIds);
@@ -163,10 +165,7 @@ function mr() {
                     if (!shuffledData[key]) {
                       shuffledData[key] = [];
                     }
-                    shuffledData[key].push(value);
-                    
-                    // Track this key for the manifest
-                    keyGroups[key] = true;
+                    shuffledData[key].push(result[key]);
                     
                     shuffledCount++;
                     checkShuffleCompletion();
@@ -178,8 +177,8 @@ function mr() {
                       method: 'process'
                     };
                     
-                    console.log(`[MR-${jobId}] Sending key, value ${key}, ${value} to node:`, targetNode);
-                    global.distribution.local.comm.send([{ key, value }], remote, (err) => {
+                    console.log(`[MR-${jobId}] Sending key, value ${key}, ${result[key]} to node:`, targetNode);
+                    global.distribution.local.comm.send([{ key, value: result[key] }], remote, (err) => {
                       if (err) {
                         console.error(`[MR-${jobId}] Error sending shuffle data:`, err);
                       }
@@ -188,7 +187,7 @@ function mr() {
                       checkShuffleCompletion();
                     });
                   }
-                });
+                }
               });
               
               function checkShuffleCompletion() {
@@ -204,7 +203,7 @@ function mr() {
                     } else {
                       console.log(`[MR-${jobId}] Stored all shuffled data with key: ${shuffledDataKey}`);
                     }
-                    
+                    console.log("keys in keyGroups: ", keyGroups);
                     // Store a manifest of all shuffle keys for this job with node-specific key
                     const shuffleManifest = {
                       jobId: jobId,
@@ -302,9 +301,9 @@ function mr() {
                 
           console.log(`[MR-${jobId}] Notifying coordinator of ${data.phase} completion:`, remote.node);
           global.distribution.local.comm.send([data], remote, (err) => {
-            if (err) {
-              console.error(`[MR-${jobId}] Error notifying coordinator:`, err);
-            }
+            // if (err) {
+            //   console.error(`[MR-${jobId}] Error notifying coordinator:`, err);
+            // }
           });
         }
         
