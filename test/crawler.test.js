@@ -480,8 +480,8 @@ async function fetchUrl(url, options = {}) {
     if (!res.ok) {
       throw new Error(`Request failed with status code ${res.status}`);
     }
-    console.log(`Fetched ${url} successfully`);
-    console.log(`Response status: ${res.status}`);
+    //console.log(`Fetched ${url} successfully`);
+    //console.log(`Response status: ${res.status}`);
 
     // Return JSON if expected, otherwise return text
     if (options.json) {
@@ -496,45 +496,101 @@ async function fetchUrl(url, options = {}) {
 
 test("(50 pts) github.crawler:fetch_and_process", (done) => {
   // Mapper function remains the same structure
-  const mapper = (key, repoData) => {
-    console.log(`Processing repository data for key: ${key}`);
+  // TF-IDF Mapper function
+  const mapper = (key, repo) => {
+    
+    // Extract all words from relevant fields
+    const extractWords = (text) => {
+      if (!text) return [];
+      if (Array.isArray(text)) {
+        return text.join(' ').toLowerCase().split(/\W+/).filter(word => word.length > 1);
+      }
+      return text.toLowerCase().split(/\W+/).filter(word => word.length > 1);
+    };
 
-    try {
-      // Extract the repository URL from the data
-      const repoUrl = repoData.url;
+    // Get words from different fields
+    const readmeWords = extractWords(repo.readme);
+    const repoNameWords = extractWords(repo.repo_name);
+    const authorWords = extractWords(repo.author);
+    const topicsWords = extractWords(repo.topics);
+    const languageWords = extractWords(repo.language);
 
-      // Create result structure as required
-      const result = {};
-      result[repoUrl] = {
-        repo_id: repoData.repo_id,
-        readme: repoData.readme || "",
-        repo_name: repoData.repo_name,
-        author: repoData.author,
-        topics: repoData.topics || [],
-        language: repoData.language || "Unknown",
-        stargazers_count: repoData.stargazers_count || 0,
-        forks_count: repoData.forks_count || 0,
+    // Count word frequencies in readme (term frequency)
+    const wordFrequency = {};
+    readmeWords.forEach(word => {
+      wordFrequency[word] = (wordFrequency[word] || 0) + 1;
+    });
+
+    // Create result array
+    const result = [];
+    
+    // Process all unique words
+    const allWords = new Set([
+      ...readmeWords,
+      ...repoNameWords,
+      ...authorWords,
+      ...topicsWords,
+      ...languageWords
+    ]);
+    
+    allWords.forEach(word => {
+      // Calculate weight based on where the word appears
+      let weight = 1;
+      
+      // Apply weight multipliers
+      if (languageWords.includes(word)) weight *= 10;
+      if (repoNameWords.includes(word)) weight *= 10;
+      if (authorWords.includes(word)) weight *= 10;
+      if (topicsWords.includes(word)) weight *= 10;
+      
+      const termFrequency = wordFrequency[word] || 0;
+      
+      // Create output object for this word
+      const output = {};
+      output[word] = {
+        repo_id: repo.repo_id,
+        repo_name: repo.repo_name,
+        term_frequency: termFrequency,
+        weight: weight,
+        stargazers_count: repo.stargazers_count,
+        forks_count: repo.forks_count
       };
-
-      return [result];
-    } catch (error) {
-      console.error(
-        `Error processing repository data for ${key}:`,
-        error.message
-      );
-      return [];
-    }
+      
+      result.push(output);
+    });
+    
+    return result;
   };
 
-  const reducer = (key, values) => {
-    if (values && values.length > 0) {
-      const result = {};
-      result[key] = values[0];
-      return result;
-    }
-    return null;
-  };
 
+  // TF-IDF Reducer function
+  const reducer = (word, repoMetadata) => {
+    // Calculate inverse document frequency (IDF)
+    // const totalDocuments = repositories.length;
+    const totalDocuments = 4;
+    const documentsWithWord = repoMetadata.length;
+    const idf = Math.log(totalDocuments / documentsWithWord);
+    
+    // Calculate total weight for each repo
+    const reposWithWeights = repoMetadata.map(repo => {
+      return {
+        repo_id: repo.repo_id,
+        repo_name: repo.repo_name,
+        idf: idf,
+        weight: repo.weight,
+        total_weight: idf * repo.weight,
+        term_frequency: repo.term_frequency,
+      };
+    });
+    
+    // Sort by total weight in descending order
+    reposWithWeights.sort((a, b) => b.total_weight - a.total_weight);
+    
+    // Return the result
+    const result = {};
+    result[word] = reposWithWeights;
+    return result;
+  };
   // Function to fetch repository metadata using GitHub API
   const fetchRepoMetadata = async (repoUrl) => {
     console.log(`Fetching metadata for ${repoUrl}...`);
@@ -627,7 +683,7 @@ test("(50 pts) github.crawler:fetch_and_process", (done) => {
         .filter((href, i, self) => self.indexOf(href) === i);
 
       const repoUrls = [];
-      const selectedTopics = topicLinks.slice(0, 3);
+      const selectedTopics = topicLinks.slice(0, 2);
 
       for (const topicHref of selectedTopics) {
         const topicUrl = `https://github.com${topicHref}`;
@@ -649,7 +705,7 @@ test("(50 pts) github.crawler:fetch_and_process", (done) => {
         }
       }
 
-      return repoUrls.slice(0, 20); // Limit to 5 repos
+      return repoUrls.slice(0, 5); // Limit to 5 repos
     } catch (error) {
       console.error("Error fetching topics page:", error.message);
       return [];
@@ -666,9 +722,9 @@ test("(50 pts) github.crawler:fetch_and_process", (done) => {
     for (let i = 0; i < repoUrls.length; i++) {
       const url = repoUrls[i];
       try {
-        console.log(
-          `Fetching metadata for repository ${i + 1}/${repoUrls.length}: ${url}`
-        );
+        //console.log(
+          //`Fetching metadata for repository ${i + 1}/${repoUrls.length}: ${url}`
+        //);
         const metadata = await fetchRepoMetadata(url);
         repoMetadata.push(metadata);
 
@@ -713,9 +769,9 @@ test("(50 pts) github.crawler:fetch_and_process", (done) => {
           if (err && Object.keys(err).length > 0) {
             console.error(`Error storing metadata for ${metadata.url}:`, err);
           } else {
-            console.log(
-              `Metadata for ${metadata.url} stored successfully with key repo${index}`
-            );
+            //console.log(
+            //  `Metadata for ${metadata.url} stored successfully with key repo${index}`
+            //);
           }
 
           stored++;

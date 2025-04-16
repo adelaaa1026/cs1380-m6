@@ -8,10 +8,14 @@ const storageGroup = {};
 const indexerGroup = {};
 
 // Define the nodes
-const n1 = {ip: '127.0.0.1', port: 8001};
-const n2 = {ip: '127.0.0.1', port: 8002};
-const n3 = {ip: '127.0.0.1', port: 8003};
-const n4 = {ip: '127.0.0.1', port: 8004};
+// const n1 = {ip: '127.0.0.1', port: 8001};
+// const n2 = {ip: '127.0.0.1', port: 8002};
+// const n3 = {ip: '127.0.0.1', port: 8003};
+// const n4 = {ip: '127.0.0.1', port: 8004};
+const n1 = {ip: 'ec2-xx-xx-xx-xx.compute-1.amazonaws.com', port: 8001};
+const n2 = {ip: 'ec2-xx-xx-xx-xx.compute-1.amazonaws.com', port: 8002};
+const n3 = {ip: 'ec2-xx-xx-xx-xx.compute-1.amazonaws.com', port: 8003};
+const n4 = {ip: 'ec2-xx-xx-xx-xx.compute-1.amazonaws.com', port: 8004};
 
 // Local server for orchestration
 let localServer = null;
@@ -63,6 +67,7 @@ test('(10 pts) (scenario) all.mr:tfidf', (done) => {
 
   // TF-IDF Mapper function
   const mapper = (key, repo) => {
+    
     // Extract all words from relevant fields
     const extractWords = (text) => {
       if (!text) return [];

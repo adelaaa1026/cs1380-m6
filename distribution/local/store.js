@@ -39,13 +39,13 @@ function put(value, configuration, callback) {
       // For null configuration, use local group and generate key from state
       gid = 'local';
       key = id.getID(value);
-      console.log("empty key in put: ", key);
+      //console.log("empty key in put: ", key);
     } else {
       // Handle both string and object configurations
       gid = typeof configuration === 'object' ? configuration.gid : 'local';
       // gid = 'local';
       key = typeof configuration === 'object' ? configuration.key : configuration;
-      console.log("key in put: ", key);
+      //console.log("key in put: ", key);
     }
 
     const filePath = getFilePath(gid, key);
@@ -59,7 +59,7 @@ function put(value, configuration, callback) {
         callback(err, null);
         return;
       }
-      console.log("value successfully written in store put: ", value);
+      //console.log("value successfully written in store put: ", value);
       callback(null, value);
     });
   } catch (error) {

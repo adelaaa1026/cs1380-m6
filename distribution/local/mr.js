@@ -203,7 +203,7 @@ function mr() {
                     } else {
                       console.log(`[MR-${jobId}] Stored all shuffled data with key: ${shuffledDataKey}`);
                     }
-                    console.log("keys in keyGroups: ", keyGroups);
+                    // console.log("keys in keyGroups: ", keyGroups);
                     // Store a manifest of all shuffle keys for this job with node-specific key
                     const shuffleManifest = {
                       jobId: jobId,
@@ -245,7 +245,7 @@ function mr() {
             // Create reduce service
             const reduceService = {
           process: (data) => {
-            console.log(`[MR-${jobId}] Processing reduce data`);
+            //console.log(`[MR-${jobId}] Processing reduce data`);
             
             // Retrieve the shuffled data from the local store using node-specific key
             const shuffledDataKey = `${jobId}-shuffled-data-${nodeId}`;
@@ -261,7 +261,7 @@ function mr() {
             });
             
             function processReduceData(data) {
-              console.log(`[MR-${jobId}] Processing reduce data:`, Object.keys(data));
+              //console.log(`[MR-${jobId}] Processing reduce data:`, Object.keys(data));
                 const results = [];
                 
               for (const [key, values] of Object.entries(data)) {

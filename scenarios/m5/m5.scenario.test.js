@@ -92,7 +92,7 @@ test('(0 pts) (scenario) all.mr:ncdc', (done) => {
 
 test('(10 pts) (scenario) all.mr:dlib', (done) => {
 /*
-   Implement the map and reduce functions.
+    Implement the map and reduce functions.
    The map function should parse the string value and return an object with the word as the key and the value as 1.
    The reduce function should return the count of each word.
 
@@ -101,7 +101,7 @@ test('(10 pts) (scenario) all.mr:dlib', (done) => {
 */
 
 // similar to flat map! needs to return an array of objects!
-  const mapper = (key, value) => {
+    const mapper = (key, value) => {
     const words = value.split(/(\s+)/).filter((e) => e !== ' ');
      
     // find counts
@@ -237,7 +237,7 @@ const reducer = (word, values) => {
       // Calculate TF-IDF score and format to 2 decimal places
       result[docId] = parseFloat((tf * idf).toFixed(2));
       return result;
-    }, {});
+}, {});
 
 
    
