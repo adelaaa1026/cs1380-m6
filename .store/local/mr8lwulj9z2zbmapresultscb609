@@ -1,0 +1,1 @@
+{"type":"array","id":0,"value":[{"type":"object","id":1,"value":{"I":{"type":"native","module":"cluster","export":"SCHED_NONE"}}},{"type":"object","id":2,"value":{"love":{"type":"native","module":"cluster","export":"SCHED_NONE"}}},{"type":"object","id":3,"value":{"Brown":{"type":"native","module":"cluster","export":"SCHED_NONE"}}}]}
