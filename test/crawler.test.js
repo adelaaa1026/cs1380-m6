@@ -32,6 +32,16 @@ const n2_internal = {ip: '0.0.0.0', port: 8002};
 // Local server for orchestration
 let localServer = null;
 
+// Near the top of your file
+let coordinatorConfig;
+try {
+  coordinatorConfig = require('../coordinator-config.json');
+  console.log("Loaded coordinator config:", coordinatorConfig);
+} catch (e) {
+  console.log("No coordinator config found, will use defaults");
+  coordinatorConfig = null;
+}
+
 // Helper function to fetch URLs using the fetch API
 async function fetchUrl(url, options = {}) {
   try {
@@ -442,8 +452,8 @@ beforeAll((done) => {
     const actualAddress = server.address();
     
     // Set the coordinator node explicitly
-    global.coordinatorNode = {
-      ip: actualAddress.address === '::' ? global.actualIp : actualAddress.address,
+    global.coordinatorNode = coordinatorConfig || {
+      ip: actualAddress.address === '::' ? '127.0.0.1' : actualAddress.address,
       port: actualAddress.port
     };
     
