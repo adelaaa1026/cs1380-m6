@@ -32,6 +32,6 @@ function toAsync(func) {
 }
 
 module.exports = {
-  createRPC: wire.createRPC,
+  createRPC: createRPC,
   toAsync: toAsync,
 };
