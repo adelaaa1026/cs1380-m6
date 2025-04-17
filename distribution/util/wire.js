@@ -1,10 +1,16 @@
 const log = require('../util/log');
 
-let createRPC = require('@brown-ds/distribution/distribution/util/wire').createRPC;
-// function createRPC(func) {
-//   // Write some code...
-// }
-
+const wire = {
+  // Implement the necessary functions here
+  // For example:
+  encode: function(data) {
+    return JSON.stringify(data);
+  },
+  decode: function(data) {
+    return JSON.parse(data);
+  }
+  // Add other functions as needed
+};
 
 /*
   The toAsync function transforms a synchronous function that returns a value into an asynchronous one,
@@ -31,6 +37,6 @@ function toAsync(func) {
 }
 
 module.exports = {
-  createRPC: createRPC,
+  createRPC: wire.createRPC,
   toAsync: toAsync,
 };

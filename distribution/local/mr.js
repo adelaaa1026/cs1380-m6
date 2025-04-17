@@ -293,17 +293,21 @@ function mr() {
         
         // Helper function to notify coordinator
         function notifyCoordinator(data) {
-                const remote = {
-            node: coordinatorNode || global.nodeConfig,
-                  service: jobId,
-                  method: 'notify'
-                };
-                
+          const remote = {
+            // Use the actual coordinator node instead of the default one
+            node: coordinatorNode || {
+              ip: global.nodeConfig.ip !== '0.0.0.0' ? global.nodeConfig.ip : global.actualIp,
+              port: global.nodeConfig.port
+            },
+            service: jobId,
+            method: 'notify'
+          };
+          
           console.log(`[MR-${jobId}] Notifying coordinator of ${data.phase} completion:`, remote.node);
           global.distribution.local.comm.send([data], remote, (err) => {
-            // if (err) {
-            //   console.error(`[MR-${jobId}] Error notifying coordinator:`, err);
-            // }
+            if (err) {
+              console.error(`[MR-${jobId}] Error notifying coordinator:`, err);
+            }
           });
         }
         

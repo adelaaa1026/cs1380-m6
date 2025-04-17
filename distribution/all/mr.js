@@ -168,7 +168,7 @@ function mr(config) {
             mapFn: serialization.serialize(configuration.map),
             reduceFn: serialization.serialize(configuration.reduce),
             jobId: jobId,
-            coordinatorNode: global.nodeConfig,
+            coordinatorNode: global.coordinatorNode || global.nodeConfig,
             gid: context.gid,
             allNodes: nodes
           }], remote, (err) => {

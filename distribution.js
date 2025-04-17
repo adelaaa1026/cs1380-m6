@@ -3,6 +3,7 @@
 const util = require('./distribution/util/util.js');
 const log = require('./distribution/util/log.js');
 const args = require('yargs').argv;
+const os = require('os');
 
 // Default configuration
 global.nodeConfig = global.nodeConfig || {
@@ -12,6 +13,26 @@ global.nodeConfig = global.nodeConfig || {
     console.log(`Node started!`);
   },
 };
+
+// Function to get the actual IP address
+function getActualIp() {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      // Skip internal and non-IPv4 addresses
+      if (iface.family !== 'IPv4' || iface.internal) {
+        continue;
+      }
+      // Return the first external IPv4 address found
+      return iface.address;
+    }
+  }
+  return '127.0.0.1'; // Fallback
+}
+
+// Store the actual IP globally
+global.actualIp = getActualIp();
+console.log("Actual IP address:", global.actualIp);
 
 /*
 You can pass "ip" and "port" arguments directly.

@@ -437,14 +437,17 @@ beforeAll((done) => {
 
   distribution.node.start((server) => {
     localServer = server;
-
+    
+    // Get the actual address and port
     const actualAddress = server.address();
-    const coordinatorNode = {
-      ip: actualAddress.address === "::" ? "127.0.0.1" : actualAddress.address,
-      port: actualAddress.port,
+    
+    // Set the coordinator node explicitly
+    global.coordinatorNode = {
+      ip: actualAddress.address === '::' ? global.actualIp : actualAddress.address,
+      port: actualAddress.port
     };
-
-    console.log("Using coordinator:", coordinatorNode);
+    
+    console.log("Using coordinator:", global.coordinatorNode);
 
     const startNodes = () => {
       distribution.local.status.spawn(n1_internal, (e, v) => {
