@@ -17,11 +17,17 @@ const crawlerGroup = {};
 // const n3 = { ip: "127.0.0.1", port: 8003 };
 // const n4 = { ip: "127.0.0.1", port: 8004 };
 
-// AWS EC2 nodes
-const n1 = { ip: "3.141.4.153", port: 8001 };
-const n2 = { ip: "18.226.94.153", port: 8001 };
-const n3 = { ip: "3.145.107.11", port: 8001 };
-const n4 = { ip: "127.0.0.1", port: 8001 };
+// Define the actual public IPs and ports for communication
+const n1 = {ip: 'ec2-3-145-107-11.us-east-2.compute.amazonaws.com', port: 8001};
+const n2 = {ip: 'ec2-18-226-94-153.us-east-2.compute.amazonaws.com', port: 8002};
+// const n3 = {ip: 'ec2-3-141-4-153.us-east-2.compute.amazonaws.com', port: 8003};
+// const n4 = {ip: 'ec2-3-141-4-153.us-east-2.compute.amazonaws.com', port: 8004};
+
+// Create fake configs that match what the nodes use internally
+const n1_internal = {ip: '0.0.0.0', port: 8001};
+const n2_internal = {ip: '0.0.0.0', port: 8002};
+// const n3_internal = {ip: '0.0.0.0', port: 8003};
+// const n4_internal = {ip: '0.0.0.0', port: 8004};
 
 // Local server for orchestration
 let localServer = null;
@@ -441,13 +447,9 @@ beforeAll((done) => {
     console.log("Using coordinator:", coordinatorNode);
 
     const startNodes = () => {
-      distribution.local.status.spawn(n1, (e, v) => {
-        distribution.local.status.spawn(n2, (e, v) => {
-          distribution.local.status.spawn(n3, (e, v) => {
-            distribution.local.status.spawn(n4, (e, v) => {
-              setupGroups();
-            });
-          });
+      distribution.local.status.spawn(n1_internal, (e, v) => {
+        distribution.local.status.spawn(n2_internal, (e, v) => {
+          setupGroups();
         });
       });
     };
@@ -474,14 +476,8 @@ afterAll((done) => {
   distribution.local.comm.send([], remote, (e, v) => {
     remote.node = n2;
     distribution.local.comm.send([], remote, (e, v) => {
-      remote.node = n3;
-      distribution.local.comm.send([], remote, (e, v) => {
-        remote.node = n4;
-        distribution.local.comm.send([], remote, (e, v) => {
-          localServer.close();
+     localServer.close();
           done();
-        });
-      });
     });
   });
 });
