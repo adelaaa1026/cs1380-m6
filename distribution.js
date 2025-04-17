@@ -8,7 +8,7 @@ const os = require('os');
 // Default configuration
 global.nodeConfig = global.nodeConfig || {
   ip: '0.0.0.0',
-  port: 1234,
+  port: 8000,
   onStart: () => {
     console.log(`Node started!`);
   },

@@ -2,7 +2,7 @@ const fs = require('fs');
 
 // Get the public DNS name from command line
 const publicDns = process.argv[2];
-const port = process.argv[3] || 1234;
+const port = process.argv[3] || 8000;
 
 if (!publicDns) {
   console.error("Please provide your public DNS name: node set-coordinator.js <public-dns> [port]");
