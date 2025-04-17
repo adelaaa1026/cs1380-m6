@@ -24,8 +24,8 @@ const n2 = {ip: 'ec2-18-226-94-153.us-east-2.compute.amazonaws.com', port: 8000}
 // const n4 = {ip: 'ec2-3-141-4-153.us-east-2.compute.amazonaws.com', port: 8000};
 
 // Create fake configs that match what the nodes use internally
-const n1_internal = {ip: '0.0.0.0', port: 8000};
-const n2_internal = {ip: '0.0.0.0', port: 8000};
+const n1_internal = {ip: '0.0.0.0', port: 8001};
+const n2_internal = {ip: '0.0.0.0', port: 8002};
 // const n3_internal = {ip: '0.0.0.0', port: 8000};
 
 // const n4_internal = {ip: '0.0.0.0', port: 8000};
